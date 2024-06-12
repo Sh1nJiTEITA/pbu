@@ -1,0 +1,63 @@
+# BasedOnStyle: LLVM
+# IndentWidth: 3
+# Language: Cpp
+# AccessModifierOffset: -3 # Настройка отступа для модификаторов доступа
+#
+# BreakBeforeBraces: Custom
+# BraceWrapping:
+# AfterClass: false # Скобка после объявления класса на новой строке
+# AfterControlStatement: true
+# AfterEnum: true
+# AfterFunction: true
+# AfterNamespace: true
+# AfterObjCDeclaration: true
+# AfterStruct: true
+# AfterUnion: true
+# BeforeCatch: true
+# BeforeElse: true
+# IndentBraces: false
+#
+# AllowAllArgumentsOnNextLine: false
+# AllowAllParametersOfDeclarationOnNextLine: true
+# BinPackArguments: false
+# PackConstructorInitializers: NextLineOnly
+# AlignConsecutiveAssignments: true
+# AlignAfterOpenBracket: Align
+# AllowShortBlocksOnASingleLine: false
+# ColumnLimit: 80
+# SpaceBeforeParens: ControlStatements
+#
+#
+
+BasedOnStyle: Google
+IndentWidth: 3
+Language: Cpp
+AccessModifierOffset: -3
+
+BreakBeforeBraces: Custom
+BraceWrapping:
+AfterClass: true
+AfterControlStatement: true
+AfterEnum: true
+AfterFunction: true
+AfterNamespace: true
+AfterObjCDeclaration: true
+AfterStruct: true
+AfterUnion: true
+BeforeCatch: true
+BeforeElse: true
+IndentBraces: false
+
+AllowAllArgumentsOnNextLine: false
+AllowAllParametersOfDeclarationOnNextLine: true
+BinPackArguments: false
+PackConstructorInitializers: NextLineOnly
+AlignConsecutiveAssignments: true
+AlignAfterOpenBracket: Align
+AllowShortBlocksOnASingleLine: false
+ColumnLimit: 80
+SpaceBeforeParens: ControlStatements
+BreakBeforeConceptDeclarations: Always
+# BreakTemplateDeclarations: Yes
+BreakConstructorInitializers: BeforeComma
+RequiresClausePosition: SingleLine

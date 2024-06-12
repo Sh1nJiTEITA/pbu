@@ -1,0 +1,12 @@
+if(NOT DEFINED CMAKE_INSTALL_PREFIX)
+  set(CMAKE_INSTALL_PREFIX "@CMAKE_INSTALL_PREFIX@")
+endif()
+
+set(CMAKE_INSTALL_PREFIX "@CMAKE_INSTALL_PREFIX@")
+
+file(READ "@CMAKE_BINARY_DIR@/install_manifest.txt" files)
+string(REGEX REPLACE "\n" ";" files "${files}")
+foreach(file ${files})
+  message(STATUS "Removing ${file}")
+  execute_process(COMMAND "${CMAKE_COMMAND}" -E remove "${file}")
+endforeach()
