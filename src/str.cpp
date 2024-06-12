@@ -51,9 +51,9 @@ void Str::_copy(const char **str, size_t num, const char *sep)
 }
 
 Str::Str(const char *d)
-    : m_len{countChars(d)}
+    : m_len{countChars(d) + 1}
 {
-   _alloc(sizeof(char) * m_len);
+   _alloc(sizeof(char) * (m_len));
    _copy(&d, 1, "");
 }
 
@@ -79,6 +79,11 @@ Str::Str(const char **d, size_t num, const char *sep)
 }
 
 Str::~Str() { free(m_data); }
+
+
+const char* Str::c_str() const { 
+   return m_data;
+}
 
 void Str::printWithNull() const
 {
