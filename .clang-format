@@ -1,21 +1,21 @@
 # BasedOnStyle: LLVM
 # IndentWidth: 3
 # Language: Cpp
-# AccessModifierOffset: -3 # Настройка отступа для модификаторов доступа
+# AccessModifierOffset: -3  # Настройка отступа для модификаторов доступа
 #
 # BreakBeforeBraces: Custom
 # BraceWrapping:
-# AfterClass: false # Скобка после объявления класса на новой строке
-# AfterControlStatement: true
-# AfterEnum: true
-# AfterFunction: true
-# AfterNamespace: true
-# AfterObjCDeclaration: true
-# AfterStruct: true
-# AfterUnion: true
-# BeforeCatch: true
-# BeforeElse: true
-# IndentBraces: false
+#   AfterClass: false         # Скобка после объявления класса на новой строке
+#   AfterControlStatement: true
+#   AfterEnum: true
+#   AfterFunction: true
+#   AfterNamespace: true
+#   AfterObjCDeclaration: true
+#   AfterStruct: true
+#   AfterUnion: true
+#   BeforeCatch: true
+#   BeforeElse: true
+#   IndentBraces: false
 #
 # AllowAllArgumentsOnNextLine: false
 # AllowAllParametersOfDeclarationOnNextLine: true
@@ -29,24 +29,25 @@
 #
 #
 
-BasedOnStyle: Google
+
+BasedOnStyle: Google 
 IndentWidth: 3
 Language: Cpp
 AccessModifierOffset: -3
 
 BreakBeforeBraces: Custom
 BraceWrapping:
-AfterClass: true
-AfterControlStatement: true
-AfterEnum: true
-AfterFunction: true
-AfterNamespace: true
-AfterObjCDeclaration: true
-AfterStruct: true
-AfterUnion: true
-BeforeCatch: true
-BeforeElse: true
-IndentBraces: false
+  AfterClass: true
+  AfterControlStatement: true
+  AfterEnum: true
+  AfterFunction: true
+  AfterNamespace: true
+  AfterObjCDeclaration: true
+  AfterStruct: true
+  AfterUnion: true
+  BeforeCatch: true
+  BeforeElse: true
+  IndentBraces: false
 
 AllowAllArgumentsOnNextLine: false
 AllowAllParametersOfDeclarationOnNextLine: true

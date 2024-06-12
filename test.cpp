@@ -1,9 +1,12 @@
+#include <catch2/catch_test_macros.hpp>
 #include <chrono>
 
 #include "pbu.h"
 // #include <sys/ioctl.h>
 #include <thread>
 //
+
+// #include <catch2/catch_all.hpp>
 
 #include "str.h"
 
@@ -25,17 +28,33 @@ void test_simple_progress_bar()
    }
 }
 
-int main()
+TEST_CASE("Str")
 {
+   REQUIRE(1 == 1);
    // test_simple_progress_bar();
    const char* b = "1234567";
-   pbu::Str a(b);
-   std::cout << a << "\n";  // << a._countChars(a.m_data) << std::endl;
+   
+   const char* c[] = {
+      "a",
+      "b",
+      "c"
+   };
 
-   // std::cout << "cols: " << PBUBar<int>::termCols() << "\n";
-   // std::cout << "rows: " << PBUBar<int>::termRows() << "\n";
-   // std::cout << "cols: " << ws.w << "\n";
-   // std::cout << "cols: " << ws.ws_col << "\n";
 
-   return 0;
+   const pbu::Str a(b);
+
+   const pbu::Str multi_s(c, 3, "_");
+
+   // multi_s.printWithNull();
+   // std::cout << "\n";
+   // multi_s.printSharps();
+   
+   const pbu::Str* concat_strs = new pbu::Str[2]{
+      a,
+      multi_s
+   };
+
+   pbu::Str concat_s = pbu::concat(concat_strs, 2, "|");
+   std::cout << concat_s << "\n" ;
+
 }
