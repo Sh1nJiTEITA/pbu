@@ -1,10 +1,11 @@
 #ifndef PBUALLOCATOR_H
 #define PBUALLOCATOR_H
 
+#include <iomanip>
 #include <iostream>
 #include <limits>
 
-#define PBU_ALLOCATOR_INFO_ENABLE
+// #define PBU_ALLOCATOR_INFO_ENABLE
 
 #ifdef PBU_ALLOCATOR_INFO_ENABLE
 
@@ -169,8 +170,8 @@ class PresentAllocationInfo
    char* __max  = nullptr;
    char* __last = nullptr;
 
-   int __int_base = 10;
-
+   int __int_base    = 10;
+   int __decimal_acc = 7;
    pbu::Allocator<char> __allocator;
 
 public:
@@ -204,36 +205,79 @@ public:
       return *this;
    }
 
-   PresentAllocationInfo& operator<<(int v)
+   PresentAllocationInfo& operator<<(size_t v)
    {
-      // if (__int_base < 2 || __int_base > 36)
-      // {
-      //    *this << "INVALID_INT";
-      //    return *this;
-      // }
-      // char* ptr = __last;
-      // char* ptr1 = __last;
-      // char* tmp_char;
-      // int tmp_v;
-      // 
-      // 
-      //
-      // do
-      // {
-      //    tmp_v = v;
-      //    v /= __int_base;
-      //    *ptr++ =
-      //        "zyxwvutsrqponmlkjihgfedcba9876543210123456789abcdefghijklmnopqrst"
-      //        "uvwxyz"[35 + (tmp_v - v * __int_base)];
-      // } while (v);
-      // if (tmp_v < 0) { 
-      //    *__last = '-';
-      //    *__last-- = '\0';
-      //    while 
-      //
-      // }
+      char* result = __allocator.allocate(50);
+      if (__int_base < 2 || __int_base > 36)
+      {
+         *this << "INVALID_INT";
+         return *this;
+      }
+      char *ptr = result, *ptr1 = ptr, tmp_char;
+      size_t tmp_v;
+      do
+      {
+         tmp_v = v;
+         v /= __int_base;
+         *ptr++ =
+             "zyxwvutsrqponmlkjihgfedcba9876543210123456789abcdefghijklmnopqrst"
+             "uvwxyz"[35 + (tmp_v - v * __int_base)];
+
+      } while (v);
+      if (tmp_v < 0)
+      {
+         *ptr++ = '-';
+      }
+      *ptr-- = '\0';
+      while (ptr1 < ptr)
+      {
+         tmp_char = *ptr;
+         *ptr--   = *ptr1;
+         *ptr1++  = tmp_char;
+      }
+      *this << result;
+      __allocator.deallocate(result, 50);
+      return *this;
+   }
+   
+   /*
+      BAD IMPLEMENTATION: do not work for binary or hex numbers... 
+   */
+   PresentAllocationInfo& operator<<(double v)
+   {
+      if (__int_base < 2 || __int_base > 36)
+      {
+         *this << "INVALID_DOUBLE";
+         return *this;
+      }
+      char* decimal_string   = __allocator.allocate(__decimal_acc + 1);
+      size_t integer_part = static_cast<int>(v);
+      double decimal_part = v - integer_part;
+      size_t master       = 10;
+      size_t tmp_v;
+      for (short int i = 0; i < __decimal_acc; ++i)
+      {
+         size_t i_v = decimal_part * master;
+         tmp_v = i_v;
+         i_v /= __int_base;
+
+         __allocator.construct(decimal_string + i,
+             "zyxwvutsrqponmlkjihgfedcba9876543210123456789abcdefgh"
+             "ijklmnopq"
+             "rst"
+             "uvwxyz"[35 + (tmp_v - i_v * __int_base)]);
+         master *= 10;
+      }
+      *this << integer_part << "." << decimal_string;
+      __allocator.deallocate(decimal_string, __decimal_acc);
+      return *this;
    }
 
+   PresentAllocationInfo& operator<<(int v)
+   {
+      *this << (size_t)v;
+      return *this;
+   }
    PresentAllocationInfo& operator<<(const char* message)
    {
       const char* ptr = message;
