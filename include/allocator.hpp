@@ -5,7 +5,7 @@
 #include <iostream>
 #include <limits>
 
-#define PBU_ALLOCATOR_INFO_ENABLE
+// #define PBU_ALLOCATOR_INFO_ENABLE
 
 #ifdef PBU_ALLOCATOR_INFO_ENABLE
 
@@ -21,10 +21,10 @@
 
 #endif
 
-/* FAST IMPLEMENTATION OF std::move */
+/* SHORT IMPLEMENTATION OF std::move */
 #define PBU_MOV(...) \
    static_cast<std::remove_reference_t<decltype(__VA_ARGS__)>&&>(__VA_ARGS__)
-/* FAST IMPLEMENTATION OF std::forward */
+/* SHORT IMPLEMENTATION OF std::forward */
 #define PBU_FWD(...) static_cast<decltype(__VA_ARGS__)&&>(__VA_ARGS__)
 
 namespace pbu
@@ -82,23 +82,33 @@ public:
       std::clog << PBU_CLOG_MAGENTA << "[D] Deallocating pointer:\t|"
                 << static_cast<void*>(p) << "|" << PBU_CLOG_RESET << "\n";
 #endif
-      ::operator delete(p);
-      __deallocation_count++;
+      if (p)
+      {
+         ::operator delete(p);
+         __deallocation_count++;
+      }
    }
 
-   pointer reallocate(pointer p, size_t old_size, size_t new_size)
-   {
+   [[nodiscard]] pointer reallocate(pointer p, size_t new_size)
+   /*
       pointer ptr = allocate(new_size);
-      if (new_size <= old_size)
-      {
-         PBU_MOV(p, p + new_size, ptr);
-      }
-      else
-      {
-         PBU_MOV(p, p + old_size, ptr);
-      }
-      deallocate(p, 10);
+      ptr         = pbu_mov(p);
+      deallocate(p, 0);
       return ptr;
+   */
+   {
+      pointer new_ptr = allocate(new_size);  // Выделяем новый блок памяти
+
+      for (size_type i = 0; i < new_size; ++i)
+      {
+         // construct(&new_ptr[i], std::move(p[i]));
+         construct(&new_ptr[i], PBU_MOV(p[i]));
+         destroy(&p[i]);
+      }
+
+      deallocate(p, 0);
+
+      return new_ptr;
    }
 
    template <typename... Args>

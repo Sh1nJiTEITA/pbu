@@ -53,7 +53,7 @@ TEST_CASE("ALLOCATOR")
       char* ptr_a = a.allocate(sizeof(char) * 20);
       strcpy_s(ptr_a, sizeof(char) * 20, "12356");
       a.deallocate(ptr_a, sizeof(char) * 10);
-      std::clog << std::endl;
+      // std::clog << std::endl;
       REQUIRE(a.allocationCount() == 1);
       REQUIRE(a.deallocationCount() == 1);
    }
@@ -64,7 +64,7 @@ TEST_CASE("ALLOCATOR")
       a.construct(ptr_a, 10);
       // std::cout << *ptr_a << "\n";
       a.deallocate(ptr_a, sizeof(int));
-      std::clog << std::endl;
+      // std::clog << std::endl;
       REQUIRE(a.allocationCount() == 1);
       REQUIRE(a.constructionCount() == 1);
       REQUIRE(a.deallocationCount() == 1);
@@ -74,16 +74,16 @@ TEST_CASE("ALLOCATOR")
       pbu::Allocator<int> a;
 
       {
-         std::cout << "Creating allocator...\n";
+         // std::cout << "Creating allocator...\n";
          std::vector<int, pbu::Allocator<int>> vec({});
 
-         std::cout << "Adding 10 to std::vector...\n";
+         // std::cout << "Adding 10 to std::vector...\n";
          vec.push_back(10);
 
-         std::cout << "Adding 10 to std::vector...\n";
+         // std::cout << "Adding 10 to std::vector...\n";
          vec.push_back(10);
 
-         std::cout << "Adding 10 to std::vector...\n";
+         // std::cout << "Adding 10 to std::vector...\n";
          vec.push_back(10);
 
          a = vec.get_allocator();
@@ -93,24 +93,24 @@ TEST_CASE("ALLOCATOR")
       REQUIRE(a.deallocationCount() == 3);
       REQUIRE(a.destructionCount() == 3);
 
-      std::clog << std::endl;
+      // std::clog << std::endl;
    }
 
    SECTION("ALLOCATOR USING IN STD::VECTOR<INT> WITH RESERVE")
    {
       pbu::Allocator<int> a;
       {
-         std::cout << "Creating allocator...\n";
+         // std::cout << "Creating allocator...\n";
          std::vector<int, pbu::Allocator<int>> vec({});
          vec.reserve(3);
 
-         std::cout << "Adding 10 to std::vector...\n";
+         // std::cout << "Adding 10 to std::vector...\n";
          vec.push_back(10);
 
-         std::cout << "Adding 10 to std::vector...\n";
+         // std::cout << "Adding 10 to std::vector...\n";
          vec.push_back(10);
 
-         std::cout << "Adding 10 to std::vector...\n";
+         // std::cout << "Adding 10 to std::vector...\n";
          vec.push_back(10);
 
          a = vec.get_allocator();
@@ -120,88 +120,75 @@ TEST_CASE("ALLOCATOR")
       REQUIRE(a.deallocationCount() == 1);
       REQUIRE(a.destructionCount() == 0);
 
-      std::clog << std::endl;
+      // std::clog << std::endl;
    }
 
    SECTION("REALLOCATION_TEST")
    {
-      // pbu::Allocator<int> a;
-      // {
-      //    std::cout << "Creating allocator...\n";
-      //    std::vector<int, pbu::Allocator<int>> vec({10,20,30});
-      //    a = vec.get_allocator();
-      //    a.reallocate(vec.data(), 3 * sizeof(int), 2);
-      // }
-      // REQUIRE(a.allocationCount() == 1);
-      // REQUIRE(a.constructionCount() == 1);
-      // REQUIRE(a.deallocationCount() == 1);
-      // REQUIRE(a.destructionCount() == 0);
-      //
-      //
-      //
-      // ~~~~~~~~~~~~~
-      // pbu::Allocator<int> allocator;
-      //
-      // // Выделяем память для 5 целых чисел
-      // int* data = allocator.allocate(5);
-      // for (int i = 0; i < 5; ++i)
-      // {
-      //    allocator.construct(&data[i], i);
-      // }
-      //
-      // // Перемещаем данные в новый массив большего размера
-      // int* new_data = allocator.reallocate(data, 5, 10);
-      // for (int i = 5; i < 10; ++i)
-      // {
-      //    allocator.construct(&new_data[i], i + 5);
-      // }
-      //
-      // // Вывод данных
-      // for (int i = 0; i < 10; ++i)
-      // {
-      //    std::cout << new_data[i] << " ";
-      // }
-      // std::cout << std::endl;
-      //
-      // // Освобождаем память
-      // for (int i = 0; i < 10; ++i)
-      // {
-      //    allocator.destroy(&new_data[i]);
-      // }
-      // allocator.deallocate(new_data, 10);
-      // std::clog << std::endl;
-      //
-
-      std::vector<int, pbu::Allocator<int>> vec;
-
-      // Заполнение вектора значениями
-      for (int i = 0; i < 5; ++i)
+      SECTION("int* test -> less elements")
       {
-         vec.push_back(i);
-      }
+         pbu::Allocator<int> a;
+         size_t element_count = 10;
+         int* vec             = a.allocate(element_count);
 
-      // Вывод текущих значений
-      std::cout << "Initial vector values:\n";
-      for (const auto& val : vec)
-      {
-         std::cout << val << " ";
-      }
-      std::cout << "\n";
+         {  // Construction
+            for (size_t i = 0; i < element_count; ++i)
+            {
+               a.construct(&vec[i], i);
+            }
 
-      // Увеличение размера вектора
-      vec.reserve(10);
-      for (int i = 5; i < vec.size(); ++i)
-      {
-         vec.push_back(i);
-      }
+            for (size_t i = 0; i < element_count; ++i)
+            {
+               REQUIRE(vec[i] == i);
+            }
+         }
 
-      // Вывод новых значений
-      std::cout << "Updated vector values:\n";
-      for (const auto& val : vec)
+         size_t new_element_count = 5;
+         {
+            vec = a.reallocate(vec, new_element_count);
+            for (size_t i = 0; i < new_element_count; ++i)
+            {
+               REQUIRE(vec[i] == i);
+            }
+         }
+
+         for (size_t i = 0; i < element_count; ++i)
+         {
+            a.destroy(&vec[i]);
+         }
+         a.deallocate(vec, element_count);
+      };
+      
+
+
+      SECTION("int** test")
       {
-         std::cout << val << " ";
+         pbu::Allocator<int*> a;
+         pbu::Allocator<int> _a;
+
+         size_t element_count = 10;
+
+         int** vec = a.allocate(element_count);
+
+         for (size_t i = 0; i < element_count; ++i)
+         {
+            vec[i] = _a.allocate(1);
+            _a.construct(vec[i], i);
+         }
+
+         for (size_t i = 0; i < element_count; ++i)
+         {
+            // std::cout << *vec[i] << "\n";
+            REQUIRE(*vec[i] == i);
+         }
+
+         for (size_t i = 0; i < element_count; ++i)
+         {
+            _a.destroy(vec[i]);
+            _a.deallocate(vec[i], 1);
+         }
+         a.deallocate(vec, element_count);
       }
-      std::cout << "\n";
    }
 }
 //
