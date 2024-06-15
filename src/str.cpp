@@ -1,5 +1,7 @@
 #include "str.h"
 
+#include <cstring>
+
 namespace pbu
 {
 
@@ -73,37 +75,38 @@ Str::Str(const char **d, size_t num, const char *sep)
    {
       sep_len = Str::countChars(sep) * (num - 1);
    }
-   m_len += sep_len + 1; // +1 -> +'\0'
+   m_len += sep_len + 1;  // +1 -> +'\0'
    _alloc(sizeof(char) * m_len);
    _copy(d, num, sep);
 }
 
 Str::~Str() { free(m_data); }
 
-
-const char* Str::c_str() const { 
-   return m_data;
-}
+const char *Str::c_str() const { return m_data; }
 
 void Str::printWithNull() const
 {
    int i = 0;
-    while (1) {
-        if (m_data[i] == '\0') {
-            printf("\\0");
-            break;
-        } else {
-            printf("%c", m_data[i]);
-        }
-        i++;
-    }
-    printf("\n");
+   while (1)
+   {
+      if (m_data[i] == '\0')
+      {
+         printf("\\0");
+         break;
+      }
+      else
+      {
+         printf("%c", m_data[i]);
+      }
+      i++;
+   }
+   printf("\n");
 }
 
-
-void Str::printSharps() const 
+void Str::printSharps() const
 {
-   for (size_t i = 0; i < m_len; ++i) { 
+   for (size_t i = 0; i < m_len; ++i)
+   {
       printf("#");
    }
 }
@@ -115,15 +118,78 @@ std::ostream &operator<<(std::ostream &os, const Str &s)
 
 // Str operator+(const Str &s) {}
 
-Str concat(const Str *strs, size_t num, const char* sep)
+Str concat(const Str *strs, size_t num, const char *sep)
 {
-   const char** d = (const char**)malloc(sizeof(const char*) * num);
-   for (size_t i = 0; i < num; ++i) { 
+   const char **d = (const char **)malloc(sizeof(const char *) * num);
+   for (size_t i = 0; i < num; ++i)
+   {
       d[i] = strs[i].m_data;
    }
    Str out(d, num, sep);
    free(d);
    return out;
+}
+
+int split(const Str &str, const char *sep, Str *&arr, size_t *count)
+{
+   int sep_len = Str::countChars(sep);
+   if (sep_len == 0) return 0;
+
+   char **str_arr = (char **)malloc(sizeof(char *) * (str.m_len / sep_len + 1));
+   int sub_str_count = 0;
+   const char *ptr   = str.m_data;
+   const char *last  = str.m_data;
+
+   while (*ptr != '\0')
+   {
+      if (strncmp(ptr, sep, sep_len) == 0)
+      {
+         int substring_len      = ptr - last;
+         str_arr[sub_str_count] = (char *)malloc(substring_len + 1);
+         strncpy(str_arr[sub_str_count], last, substring_len);
+         str_arr[sub_str_count][substring_len] = '\0';
+
+         sub_str_count++;
+         ptr += sep_len;
+         last = ptr;
+      }
+      else
+      {
+         ptr++;
+      }
+   }
+
+   if (last != ptr)
+   {
+      int substring_len      = ptr - last;
+      str_arr[sub_str_count] = (char *)malloc(substring_len + 1);
+      strncpy(str_arr[sub_str_count], last, substring_len);
+      str_arr[sub_str_count][substring_len] = '\0';
+
+      sub_str_count++;
+   }
+
+   if (arr == nullptr)
+   {
+      arr = (Str *)malloc(sizeof(Str) * sub_str_count);
+   }
+
+   for (int i = 0; i < sub_str_count; ++i)
+   {
+      arr[i] = Str(str_arr[i]);
+   }
+
+   for (int i = 0; i < sub_str_count; ++i)
+   {
+      free(str_arr[i]);
+   }
+   free(str_arr);
+   if (count != nullptr)
+   {
+      *count = sub_str_count;
+   }
+
+   return 1;
 }
 
 }  // namespace pbu

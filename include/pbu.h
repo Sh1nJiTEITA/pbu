@@ -11,6 +11,8 @@
 
 void test_progress_bar(int);
 
+#include <allocator.hpp>
+
 template <class T>
 class PBUBar
 {

@@ -20,6 +20,7 @@ public:
    Str(const char*);
    Str(const char**, size_t num, const char* sep = "");
    ~Str();
+
    const char* c_str() const;
    void printWithNull() const;
    void printSharps() const;
@@ -28,11 +29,12 @@ public:
 
    friend std::ostream& operator<<(std::ostream& os, const Str& s);
    friend Str concat(const Str* strs, size_t num, const char* sep);
-   // Str operator+(const Str& s);
+   friend int split(const Str& str, const char* sep, Str*& str_arr,
+                    size_t* count);
 };
 
 Str concat(const Str* strs, size_t num, const char* sep);
-
+int split(const Str& str, const char* sep, Str*& str_arr, size_t* count);
 }  // namespace pbu
 
 #endif

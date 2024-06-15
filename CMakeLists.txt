@@ -2,13 +2,28 @@ cmake_minimum_required(VERSION 3.28)
 project(pbu)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-add_library(pbu SHARED src/pbu.cpp include/pbu.h src/bar_string.cpp
-                       include/bar_string.h src/str.cpp include/str.h)
 
+set(SOURCES
+    src/pbu.cpp
+    src/bar_string.cpp
+    src/str.cpp
+    src/vec.cpp)
+
+set(HEADERS
+    include/pbu.h
+    include/bar_string.h
+    include/str.h
+    include/vec.hpp
+    include/allocator.hpp)
+
+
+
+add_library(pbu SHARED ${SOURCES} ${HEADERS})
+                       
 target_include_directories(pbu PUBLIC include)
 
 install(TARGETS pbu DESTINATION lib)
-install(FILES include/pbu.h DESTINATION include)
+install(FILES ${HEADERS} DESTINATION include)
 
 configure_file(
   "${CMAKE_CURRENT_SOURCE_DIR}/cmake_uninstall.cmake.in"
@@ -20,8 +35,14 @@ add_custom_target(
 set(BUILD_TESTS ON)
 
 if (${BUILD_TESTS})
-add_executable(pbu_test test.cpp src/pbu.cpp include/pbu.h src/str.cpp
-                        include/str.h)
+
+set(TEST_SOURCES
+  test/test.cpp
+  test/test_allocator.cpp
+)
+
+
+add_executable(pbu_test ${TEST_SOURCES} ${SOURCES} ${HEADERS})
 target_include_directories(pbu_test PUBLIC include)
 find_package(catch2)
 target_link_libraries(pbu_test PRIVATE Catch2::Catch2WithMain)
