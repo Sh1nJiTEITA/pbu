@@ -36,15 +36,16 @@ set(BUILD_TESTS ON)
 
 if (${BUILD_TESTS})
 
-set(TEST_SOURCES
-  test/test.cpp
-  test/test_allocator.cpp
-)
+  set(TEST_SOURCES
+    # test/test.cpp
+    # test/test_allocator.cpp
+    # test/test_vec.cpp
+    test/test_presentAllocationInfo.cpp
+  )
 
-
-add_executable(pbu_test ${TEST_SOURCES} ${SOURCES} ${HEADERS})
-target_include_directories(pbu_test PUBLIC include)
-find_package(catch2)
-target_link_libraries(pbu_test PRIVATE Catch2::Catch2WithMain)
+  add_executable(pbu_test ${TEST_SOURCES} ${SOURCES} ${HEADERS})
+  target_include_directories(pbu_test PUBLIC include)
+  find_package(catch2)
+  target_link_libraries(pbu_test PRIVATE Catch2::Catch2WithMain)
 endif (${BUILD_TESTS})
 

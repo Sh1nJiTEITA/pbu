@@ -1,11 +1,10 @@
 #ifndef PBUALLOCATOR_H
 #define PBUALLOCATOR_H
 
-#include <cstddef>
 #include <iostream>
 #include <limits>
 
-// #define PBU_ALLOCATOR_INFO_ENABLE
+#define PBU_ALLOCATOR_INFO_ENABLE
 
 #ifdef PBU_ALLOCATOR_INFO_ENABLE
 
@@ -69,18 +68,21 @@ public:
       pointer ptr = static_cast<pointer>(::operator new(n * sizeof(T)));
 
 #ifdef PBU_ALLOCATOR_INFO_ENABLE
-      std::clog << PBU_CLOG_GREEN << "[A] Allocationg pointer:\t|"
-                << static_cast<void*>(ptr) << "|" << PBU_CLOG_RESET << "\n";
+      std::clog << PBU_CLOG_GREEN << "[A] Allocating pointer:\t\t|"
+                << static_cast<void*>(ptr) << "|\t"
+                << "bytes: " << sizeof(T) * n << "\t|" << PBU_CLOG_RESET
+                << "\n";
 #endif
       __allocation_count++;
       return ptr;
    }
 
-   void deallocate(pointer p, size_type) noexcept
+   void deallocate(pointer p, size_type s) noexcept
    {
 #ifdef PBU_ALLOCATOR_INFO_ENABLE
       std::clog << PBU_CLOG_MAGENTA << "[D] Deallocating pointer:\t|"
-                << static_cast<void*>(p) << "|" << PBU_CLOG_RESET << "\n";
+                << static_cast<void*>(p) << "|\tbytes: " << s << "\t|"
+                << PBU_CLOG_RESET << "\n";
 #endif
       if (p)
       {
@@ -97,17 +99,20 @@ public:
       return ptr;
    */
    {
-      pointer new_ptr = allocate(new_size);  // Выделяем новый блок памяти
-
-      for (size_type i = 0; i < (old_size < new_size ? old_size : new_size); ++i)
+#ifdef PBU_ALLOCATOR_INFO_ENABLE
+      std::clog << PBU_CLOG_BLUE << "[R] Reallocating pointer:\t|"
+                << static_cast<void*>(p) << "|\tbytes: " << old_size << " -> "
+                << new_size << "\t|" << PBU_CLOG_RESET << "\n";
+#endif
+      pointer new_ptr = allocate(new_size);
+      size_type m     = old_size < new_size ? old_size : new_size;
+      for (size_type i = 0; i < m; ++i)
       {
-         // construct(&new_ptr[i], std::move(p[i]));
          construct(&new_ptr[i], PBU_MOV(p[i]));
          destroy(&p[i]);
       }
-
-      deallocate(p, 0);
-
+      deallocate(p, old_size);
+      __reallocation_count++;
       return new_ptr;
    }
 
@@ -116,7 +121,8 @@ public:
    {
 #ifdef PBU_ALLOCATOR_INFO_ENABLE
       std::clog << PBU_CLOG_ORANGE << "[C] Constructing pointer:\t|"
-                << static_cast<void*>(p) << "|" << PBU_CLOG_RESET << "\n";
+                << static_cast<void*>(p) << "|" << "\tbytes: " << sizeof(T)
+                << "\t|" << PBU_CLOG_RESET << "\n";
 #endif
       new (static_cast<void*>(p)) T(PBU_FWD(args)...);
       __construction_count++;
@@ -127,7 +133,8 @@ public:
       ++__destruction_count;
 #ifdef PBU_ALLOCATOR_INFO_ENABLE
       std::clog << PBU_CLOG_BLUE << "[D] Destroying pointer:\t\t|"
-                << static_cast<void*>(p) << "|" << PBU_CLOG_RESET << "\n";
+                << static_cast<void*>(p) << "|\t" << "bytes: " << sizeof(T)
+                << "\t|" << PBU_CLOG_RESET << "\n";
 #endif
       p->~T();
    }
@@ -139,6 +146,7 @@ public:
 
 private:
    size_type __allocation_count   = 0;
+   size_type __reallocation_count = 0;
    size_type __deallocation_count = 0;
    size_type __construction_count = 0;
    size_type __destruction_count  = 0;
@@ -154,6 +162,137 @@ bool operator!=(const Allocator<T>&, const Allocator<U>&)
 {
    return false;
 }
+
+class PresentAllocationInfo
+{
+   char* __data = nullptr;
+   char* __max  = nullptr;
+   char* __last = nullptr;
+
+   int __int_base = 10;
+
+   pbu::Allocator<char> __allocator;
+
+public:
+   PresentAllocationInfo(size_t chars_count)
+   {
+      if (chars_count != 0)
+      {
+         __data = __allocator.allocate(chars_count);
+         __max  = __data + chars_count;
+         __last = __data;
+         // __max[chars_count-1] = '\0';
+      }
+   }
+
+   ~PresentAllocationInfo()
+   {
+      char* ch = __data;
+      __allocator.deallocate(__data, __max - __data);
+   }
+
+   char& operator[](size_t i) { return __data[i]; }
+
+   PresentAllocationInfo& setIntBase(int b)
+   {
+      __int_base = b;
+      return *this;
+   }
+
+   PresentAllocationInfo& operator<<(const PresentAllocationInfo&)
+   {
+      return *this;
+   }
+
+   PresentAllocationInfo& operator<<(int v)
+   {
+      // if (__int_base < 2 || __int_base > 36)
+      // {
+      //    *this << "INVALID_INT";
+      //    return *this;
+      // }
+      // char* ptr = __last;
+      // char* ptr1 = __last;
+      // char* tmp_char;
+      // int tmp_v;
+      // 
+      // 
+      //
+      // do
+      // {
+      //    tmp_v = v;
+      //    v /= __int_base;
+      //    *ptr++ =
+      //        "zyxwvutsrqponmlkjihgfedcba9876543210123456789abcdefghijklmnopqrst"
+      //        "uvwxyz"[35 + (tmp_v - v * __int_base)];
+      // } while (v);
+      // if (tmp_v < 0) { 
+      //    *__last = '-';
+      //    *__last-- = '\0';
+      //    while 
+      //
+      // }
+   }
+
+   PresentAllocationInfo& operator<<(const char* message)
+   {
+      const char* ptr = message;
+      size_t chars    = 0;
+      while (*ptr != '\0')
+      {
+         chars++;
+         ptr++;
+      }
+
+      size_t old_size       = __max - __data;
+      size_t old_ready_size = __last - __data;
+      if (old_size - old_ready_size < chars)
+      {
+         size_t new_size = old_size * 2;
+         __data          = __allocator.reallocate(__data, old_size, new_size);
+         __last          = __data + old_ready_size;
+         __max           = __data + new_size;
+      }
+      ptr = message;
+      while (*ptr != '\0')
+      {
+         __allocator.construct(__last, *ptr);
+         __last++;
+         ptr++;
+      }
+      return *this;
+   }
+
+   void find_null_term(size_t len)
+   {
+      char* ptr = __data;
+      for (size_t i = 0; i < len; ++i)
+      {
+         if (*ptr != '\0')
+         {
+            std::cout << *(ptr + i) << "\n";
+         }
+         else
+         {
+            std::cout << '\0' << "\n";
+         }
+      }
+   }
+
+   friend std::ostream& operator<<(std::ostream& os,
+                                   const PresentAllocationInfo& message)
+   {
+      for (char* ch = message.__data; ch != message.__last; ++ch)
+      {
+         os << *ch;
+      }
+      // os << message.__data;
+      return os;
+   }
+};
+
+// std::ostream& operator<<(std::ostream& os, const PresentAllocationInfo&
+// message)
 
 }  // namespace pbu
 
