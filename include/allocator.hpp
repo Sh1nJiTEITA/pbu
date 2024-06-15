@@ -89,7 +89,7 @@ public:
       }
    }
 
-   [[nodiscard]] pointer reallocate(pointer p, size_t new_size)
+   [[nodiscard]] pointer reallocate(pointer p, size_t old_size, size_t new_size)
    /*
       pointer ptr = allocate(new_size);
       ptr         = pbu_mov(p);
@@ -99,7 +99,7 @@ public:
    {
       pointer new_ptr = allocate(new_size);  // Выделяем новый блок памяти
 
-      for (size_type i = 0; i < new_size; ++i)
+      for (size_type i = 0; i < (old_size < new_size ? old_size : new_size); ++i)
       {
          // construct(&new_ptr[i], std::move(p[i]));
          construct(&new_ptr[i], PBU_MOV(p[i]));

@@ -145,7 +145,7 @@ TEST_CASE("ALLOCATOR")
 
          size_t new_element_count = 5;
          {
-            vec = a.reallocate(vec, new_element_count);
+            vec = a.reallocate(vec, element_count, new_element_count);
             for (size_t i = 0; i < new_element_count; ++i)
             {
                REQUIRE(vec[i] == i);
@@ -158,8 +158,44 @@ TEST_CASE("ALLOCATOR")
          }
          a.deallocate(vec, element_count);
       };
-      
 
+      SECTION("int* test -> more elements")
+      {
+         pbu::Allocator<int> a;
+         size_t element_count = 10;
+         int* vec             = a.allocate(element_count);
+
+         {  // Construction
+            for (size_t i = 0; i < element_count; ++i)
+            {
+               a.construct(&vec[i], i);
+            }
+
+            for (size_t i = 0; i < element_count; ++i)
+            {
+               REQUIRE(vec[i] == i);
+            }
+         }
+
+         size_t new_element_count = 20;
+         {
+            vec = a.reallocate(vec, element_count, new_element_count);
+            for (size_t i = element_count; i < new_element_count; ++i)
+            {
+               a.construct(&vec[i], i);
+            }
+            for (size_t i = 0; i < new_element_count; ++i)
+            {
+               REQUIRE(vec[i] == i);
+            }
+         }
+
+         for (size_t i = 0; i < element_count; ++i)
+         {
+            a.destroy(&vec[i]);
+         }
+         a.deallocate(vec, element_count);
+      };
 
       SECTION("int** test")
       {
