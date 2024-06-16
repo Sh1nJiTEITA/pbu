@@ -6,9 +6,9 @@
 #include <limits>
 
 // #define PBU_ALLOCATOR_INFO_ENABLE
+#define PBU_COLOR_OUTPUT
 
-#ifdef PBU_ALLOCATOR_INFO_ENABLE
-
+#ifdef PBU_COLOR_OUTPUT
 #define PBU_CLOG_RESET "\033[0m"
 #define PBU_CLOG_RED "\033[31m"          /* Red */
 #define PBU_CLOG_GREEN "\033[32m"        /* Green */
@@ -18,7 +18,16 @@
 #define PBU_CLOG_CYAN "\033[36m"         /* Cyan */
 #define PBU_CLOG_WHITE "\033[37m"        /* White */
 #define PBU_CLOG_ORANGE "\033[38;5;214m" /* orange */
-
+#else
+#define PBU_CLOG_RESET ""
+#define PBU_CLOG_RED ""     /* Red */
+#define PBU_CLOG_GREEN ""   /* Green */
+#define PBU_CLOG_YELLOW ""  /* Yellow */
+#define PBU_CLOG_BLUE ""    /* Blue */
+#define PBU_CLOG_MAGENTA "" /* Magenta */
+#define PBU_CLOG_CYAN ""    /* Cyan */
+#define PBU_CLOG_WHITE ""   /* White */
+#define PBU_CLOG_ORANGE ""  /* orange */
 #endif
 
 /* SHORT IMPLEMENTATION OF std::move */
@@ -69,6 +78,7 @@ public:
       pointer ptr = static_cast<pointer>(::operator new(n * sizeof(T)));
 
 #ifdef PBU_ALLOCATOR_INFO_ENABLE
+
       std::clog << PBU_CLOG_GREEN << "[A] Allocating pointer:\t\t|"
                 << static_cast<void*>(ptr) << "|\t"
                 << "bytes: " << sizeof(T) * n << "\t|" << PBU_CLOG_RESET
@@ -141,8 +151,9 @@ public:
    }
 
    size_type allocationCount() const noexcept { return __allocation_count; }
-   size_type deallocationCount() const noexcept { return __allocation_count; }
-   size_type constructionCount() const noexcept { return __allocation_count; }
+   size_type reallocationCount() const noexcept { return __reallocation_count; }
+   size_type deallocationCount() const noexcept { return __deallocation_count; }
+   size_type constructionCount() const noexcept { return __construction_count; }
    size_type destructionCount() const noexcept { return __destruction_count; }
 
 private:
@@ -177,7 +188,6 @@ class PresentAllocationInfo
    pbu::Allocator<char> __allocator;
 
 public:
-
    // UTILS -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
    static size_t calcCharCount(const char* str)
    {
@@ -329,6 +339,11 @@ public:
       *this << (long long int)v;
       return *this;
    }
+   PresentAllocationInfo& operator<<(size_t v)
+   {
+      *this << (long long int)v;
+      return *this;
+   }
    PresentAllocationInfo& operator<<(const char* message)
    {
       if (__last != __data)
@@ -364,7 +379,6 @@ public:
       __last++;
       return *this;
    }
-
 
    friend std::ostream& operator<<(std::ostream& os,
                                    const PresentAllocationInfo& message)

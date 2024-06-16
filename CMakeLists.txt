@@ -3,23 +3,13 @@ project(pbu)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-set(SOURCES
-    src/pbu.cpp
-    src/bar_string.cpp
-    src/str.cpp
-    src/vec.cpp)
+set(SOURCES src/pbu.cpp src/bar_string.cpp src/str.cpp src/vec.cpp)
 
-set(HEADERS
-    include/pbu.h
-    include/bar_string.h
-    include/str.h
-    include/vec.hpp
-    include/allocator.hpp)
-
-
+set(HEADERS include/pbu.h include/bar_string.h include/str.h include/vec.hpp
+            include/allocator.hpp)
 
 add_library(pbu SHARED ${SOURCES} ${HEADERS})
-                       
+
 target_include_directories(pbu PUBLIC include)
 
 install(TARGETS pbu DESTINATION lib)
@@ -34,18 +24,14 @@ add_custom_target(
 
 set(BUILD_TESTS ON)
 
-if (${BUILD_TESTS})
+if(${BUILD_TESTS})
 
-  set(TEST_SOURCES
-    # test/test.cpp
-    # test/test_allocator.cpp
-    # test/test_vec.cpp
-    test/test_presentAllocationInfo.cpp
-  )
+  set(TEST_SOURCES # test/test.cpp
+      test/test_allocator.cpp test/test_vec.cpp
+      test/test_presentAllocationInfo.cpp)
 
   add_executable(pbu_test ${TEST_SOURCES} ${SOURCES} ${HEADERS})
   target_include_directories(pbu_test PUBLIC include)
-  find_package(catch2)
+  find_package(Catch2)
   target_link_libraries(pbu_test PRIVATE Catch2::Catch2WithMain)
-endif (${BUILD_TESTS})
-
+endif(${BUILD_TESTS})
