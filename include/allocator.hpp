@@ -172,11 +172,28 @@ class PresentAllocationInfo
 
    int __num_base    = 10;
    int __decimal_acc = 7;
-   
+
    bool __is_total_precision = false;
    pbu::Allocator<char> __allocator;
 
 public:
+
+   // UTILS -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
+   static size_t calcCharCount(const char* str)
+   {
+      size_t chars    = 0;
+      const char* ptr = str;
+      while (*ptr != '\0')
+      {
+         chars++;
+         ptr++;
+      }
+      return chars;
+   }
+
+   const char* get() { return __data; }
+
+   // CONSTRUCTION -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
    PresentAllocationInfo(size_t chars_count)
    {
       if (chars_count != 0)
@@ -184,8 +201,14 @@ public:
          __data = __allocator.allocate(chars_count);
          __max  = __data + chars_count;
          __last = __data;
-         // __max[chars_count-1] = '\0';
       }
+   }
+
+   PresentAllocationInfo(const char* message)
+       : PresentAllocationInfo(PresentAllocationInfo::calcCharCount(message))
+
+   {
+      *this << message;
    }
 
    ~PresentAllocationInfo()
@@ -195,9 +218,11 @@ public:
    }
 
    char& operator[](size_t i) { return __data[i]; }
-   
-   PresentAllocationInfo& setIsTotalPrecision(bool i) { 
-     __is_total_precision = i;
+
+   // SETTERS -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
+   PresentAllocationInfo& setIsTotalPrecision(bool i)
+   {
+      __is_total_precision = i;
       return *this;
    }
 
@@ -213,6 +238,7 @@ public:
       return *this;
    }
 
+   // ADDING -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
    PresentAllocationInfo& operator<<(const PresentAllocationInfo&)
    {
       return *this;
@@ -234,12 +260,7 @@ public:
          v /= __num_base;
          *ptr++ =
              /*
-
-
-             "zyxwvutsrqponmlkjihgfedcba9876543210123456789abcdefghijklmnopqrst"
-                          "uvwxyz"
-
-
+             "zyxwvutsrqponmlkjihgfedcba9876543210123456789abcdefghijklmnopqrstuvwxyz"
                          */
              "ZYXWVUTSRQPONMLKJIHGFEDCBA9876543210123456789ABCDEFGHIJKLMNOPQRST"
              "UVWXYZ"[35 + (tmp_v - v * __num_base)];
@@ -282,7 +303,6 @@ public:
 
       size_t precision = __decimal_acc;
 
-      
       while (precision > 0 && ((decimal_part != 0.0f) || __is_total_precision))
       {
          decimal_part *= __num_base;
@@ -345,23 +365,6 @@ public:
       return *this;
    }
 
-   void find_null_term(size_t len)
-   {
-      char* ptr = __data;
-      for (size_t i = 0; i < len; ++i)
-      {
-         if (*ptr != '\0')
-         {
-            std::cout << *(ptr + i) << "\n";
-         }
-         else
-         {
-            std::cout << '\0' << "\n";
-         }
-      }
-   }
-
-   const char* get() { return __data; }
 
    friend std::ostream& operator<<(std::ostream& os,
                                    const PresentAllocationInfo& message)
@@ -374,9 +377,6 @@ public:
       return os;
    }
 };
-
-// std::ostream& operator<<(std::ostream& os, const PresentAllocationInfo&
-// message)
 
 }  // namespace pbu
 

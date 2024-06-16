@@ -1,8 +1,6 @@
 #include <allocator.hpp>
 #include <catch2/catch_test_macros.hpp>
 #include <cstring>
-#include <iomanip>
-#include <iostream>
 
 TEST_CASE("Test double to string conversion with specific base and precision",
           "[conversion]")
@@ -69,5 +67,30 @@ TEST_CASE("Test double to string conversion with specific base and precision",
       pbu::PresentAllocationInfo b(100);
       b << b.setBase(8) << b.setPrecision(3) << 255.123;
       REQUIRE(strcmp(b.get(), "377.076") == 0);
+   }
+}
+
+TEST_CASE("Adding smt to string")
+{
+   SECTION("ADDING CHARS IN ROW [int]")
+   {
+      pbu::PresentAllocationInfo b(100);
+      b << "!!" << "___";
+      REQUIRE(strcmp(b.get(), "!!___") == 0);
+   }
+
+   SECTION("ADDING INTS IN ROW [int]")
+   {
+      pbu::PresentAllocationInfo b(100);
+      b << 10 << " " << 20;
+      REQUIRE(strcmp(b.get(), "10 20") == 0);
+   }
+
+   SECTION("ADDING REALS IN ROW [int]")
+   {
+      pbu::PresentAllocationInfo b(100);
+      b << b.setIsTotalPrecision(true) << b.setPrecision(3) << 10.029 << " "
+        << 10.312;
+      REQUIRE(strcmp(b.get(), "10.028 10.311") == 0);
    }
 }

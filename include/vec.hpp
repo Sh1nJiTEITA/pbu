@@ -65,9 +65,11 @@ public:
    T& operator[](size_t i) { return __data[i]; }
 
 #ifdef PBU_VEC_DEBUG
-   // char* represent_string() { 
-   //    
-   // }
+   PresentAllocationInfo rprInfo() { 
+      PresentAllocationInfo msg(capacity() * 2);
+       
+
+   }
 #endif
 };
 
