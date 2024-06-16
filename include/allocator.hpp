@@ -170,8 +170,10 @@ class PresentAllocationInfo
    char* __max  = nullptr;
    char* __last = nullptr;
 
-   int __int_base    = 10;
+   int __num_base    = 10;
    int __decimal_acc = 7;
+   
+   bool __is_total_precision = false;
    pbu::Allocator<char> __allocator;
 
 public:
@@ -193,10 +195,21 @@ public:
    }
 
    char& operator[](size_t i) { return __data[i]; }
+   
+   PresentAllocationInfo& setIsTotalPrecision(bool i) { 
+     __is_total_precision = i;
+      return *this;
+   }
 
-   PresentAllocationInfo& setIntBase(int b)
+   PresentAllocationInfo& setBase(int b)
    {
-      __int_base = b;
+      __num_base = b;
+      return *this;
+   }
+
+   PresentAllocationInfo& setPrecision(int p)
+   {
+      __decimal_acc = p;
       return *this;
    }
 
@@ -205,23 +218,31 @@ public:
       return *this;
    }
 
-   PresentAllocationInfo& operator<<(size_t v)
+   PresentAllocationInfo& operator<<(long long int v)
    {
       char* result = __allocator.allocate(50);
-      if (__int_base < 2 || __int_base > 36)
+      if (__num_base < 2 || __num_base > 36)
       {
          *this << "INVALID_INT";
          return *this;
       }
       char *ptr = result, *ptr1 = ptr, tmp_char;
-      size_t tmp_v;
+      long long int tmp_v;
       do
       {
          tmp_v = v;
-         v /= __int_base;
+         v /= __num_base;
          *ptr++ =
+             /*
+
+
              "zyxwvutsrqponmlkjihgfedcba9876543210123456789abcdefghijklmnopqrst"
-             "uvwxyz"[35 + (tmp_v - v * __int_base)];
+                          "uvwxyz"
+
+
+                         */
+             "ZYXWVUTSRQPONMLKJIHGFEDCBA9876543210123456789ABCDEFGHIJKLMNOPQRST"
+             "UVWXYZ"[35 + (tmp_v - v * __num_base)];
 
       } while (v);
       if (tmp_v < 0)
@@ -239,47 +260,62 @@ public:
       __allocator.deallocate(result, 50);
       return *this;
    }
-   
-   /*
-      BAD IMPLEMENTATION: do not work for binary or hex numbers... 
-   */
+
    PresentAllocationInfo& operator<<(double v)
    {
-      if (__int_base < 2 || __int_base > 36)
+      if (__num_base < 2 || __num_base > 36)
       {
          *this << "INVALID_DOUBLE";
          return *this;
       }
-      char* decimal_string   = __allocator.allocate(__decimal_acc + 1);
-      size_t integer_part = static_cast<int>(v);
-      double decimal_part = v - integer_part;
-      size_t master       = 10;
-      size_t tmp_v;
-      for (short int i = 0; i < __decimal_acc; ++i)
+      char* decimal_string       = __allocator.allocate(__decimal_acc + 1);
+      long long int integer_part = static_cast<long long int>(v);
+      double decimal_part;
+      if (integer_part < 0)
       {
-         size_t i_v = decimal_part * master;
-         tmp_v = i_v;
-         i_v /= __int_base;
-
-         __allocator.construct(decimal_string + i,
-             "zyxwvutsrqponmlkjihgfedcba9876543210123456789abcdefgh"
-             "ijklmnopq"
-             "rst"
-             "uvwxyz"[35 + (tmp_v - i_v * __int_base)]);
-         master *= 10;
+         decimal_part = -1 * v - -1 * integer_part;
       }
+      else
+      {
+         decimal_part = v - integer_part;
+      }
+
+      size_t precision = __decimal_acc;
+
+      
+      while (precision > 0 && ((decimal_part != 0.0f) || __is_total_precision))
+      {
+         decimal_part *= __num_base;
+         size_t intPart = static_cast<size_t>(decimal_part);
+         __allocator.construct(decimal_string + __decimal_acc - precision,
+                               "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"[intPart]);
+         decimal_part -= intPart;
+         --precision;
+      }
+      __allocator.construct(decimal_string + __decimal_acc - precision, '\0');
       *this << integer_part << "." << decimal_string;
-      __allocator.deallocate(decimal_string, __decimal_acc);
+      __allocator.deallocate(decimal_string, __decimal_acc + 1);
+      return *this;
+   }
+
+   PresentAllocationInfo& operator<<(float v)
+   {
+      *this << (double)v;
       return *this;
    }
 
    PresentAllocationInfo& operator<<(int v)
    {
-      *this << (size_t)v;
+      *this << (long long int)v;
       return *this;
    }
    PresentAllocationInfo& operator<<(const char* message)
    {
+      if (__last != __data)
+      {
+         __allocator.destroy(__last);
+         __last--;
+      }
       const char* ptr = message;
       size_t chars    = 0;
       while (*ptr != '\0')
@@ -304,6 +340,8 @@ public:
          __last++;
          ptr++;
       }
+      __allocator.construct(__last, '\0');
+      __last++;
       return *this;
    }
 
@@ -322,6 +360,8 @@ public:
          }
       }
    }
+
+   const char* get() { return __data; }
 
    friend std::ostream& operator<<(std::ostream& os,
                                    const PresentAllocationInfo& message)

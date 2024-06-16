@@ -1,93 +1,73 @@
 #include <allocator.hpp>
 #include <catch2/catch_test_macros.hpp>
+#include <cstring>
 #include <iomanip>
 #include <iostream>
 
-char* __itoa(int value, char* result, int base)
+TEST_CASE("Test double to string conversion with specific base and precision",
+          "[conversion]")
 {
-   // check that the base if valid
-   if (base < 2 || base > 36)
+   SECTION("Decimal conversion with precision 5")
    {
-      *result = '\0';
-      return result;
-   }
-
-   char *ptr = result, *ptr1 = result, tmp_char;
-   int tmp_value;
-
-   do
-   {
-      tmp_value = value;
-      value /= base;
-      *ptr++ =
-          "zyxwvutsrqponmlkjihgfedcba9876543210123456789abcdefghijklmnopqrstuvw"
-          "xyz"[35 + (tmp_value - value * base)];
-   } while (value);
-
-   // Apply negative sign
-   if (tmp_value < 0) *ptr++ = '-';
-   *ptr-- = '\0';
-
-   // Reverse the string
-   while (ptr1 < ptr)
-   {
-      tmp_char = *ptr;
-      *ptr--   = *ptr1;
-      *ptr1++  = tmp_char;
-   }
-   return result;
-}
-void preserveFractionAsInteger(double& d)
-{
-   uint64_t* ptr = reinterpret_cast<uint64_t*>(&d);
-   uint64_t sign = *ptr & 0x8000000000000000;
-   int exponent = (*ptr >> 52) & 0x7FF;
-   if (exponent == 0)
-   {
-      std::cerr << "Subnormal numbers are not supported." << std::endl;
-      return;
-   }
-   uint64_t fraction = *ptr & 0x000FFFFFFFFFFFFF;
-   if (exponent != 0x7FF)
-   {
-      fraction |= 0x0010000000000000;
-   }
-   fraction <<= (52 - exponent);
-   if (sign)
-   {
-      d = -static_cast<double>(fraction);
-   }
-   else
-   {
-      d = static_cast<double>(fraction);
-   }
-}
-
-int extractFraction(float f, int decimalPlaces)
-{
-   std::cout << "float: " << f << "\n";
-   float scaledValue = f - (float)(int)f;
-   for (int i = 0; i < decimalPlaces; ++i)
-   {
-      scaledValue *= 10.0f;
-      std::cout << scaledValue << "\n";
-   }
-
-   int scaledIntValue = static_cast<int>(scaledValue);
-   int fraction       = scaledIntValue;
-
-   return fraction;
-}
-
-TEST_CASE("ALLOCATION_INFO")
-{
-   SECTION("STD::COUT")
-   {
-      double a = 1280.9283123;
-      // std::cout << extractFraction(a, 4);
-      // preserveFractionAsInteger(a);
       pbu::PresentAllocationInfo b(100);
-      b << a;
-      std::cout << std::endl << b;
+      b << b.setBase(10) << b.setPrecision(5) << 1280.9283123;
+      REQUIRE(strcmp(b.get(), "1280.92831") == 0);
+   }
+
+   SECTION("Decimal conversion with precision 2")
+   {
+      pbu::PresentAllocationInfo b(100);
+      b << b.setBase(10) << b.setPrecision(2) << 123.456789;
+      REQUIRE(strcmp(b.get(), "123.45") == 0);
+   }
+
+   SECTION("Decimal conversion with precision 0")
+   {
+      pbu::PresentAllocationInfo b(100);
+      b << b.setBase(10) << b.setPrecision(0) << 123.456789;
+      REQUIRE(strcmp(b.get(), "123.") == 0);
+   }
+
+   SECTION("Negative decimal conversion with precision 3")
+   {
+      pbu::PresentAllocationInfo b(100);
+      b << b.setBase(10) << b.setPrecision(3) << -123.456789;
+      REQUIRE(strcmp(b.get(), "-123.456") == 0);
+   }
+
+   SECTION("Hexadecimal conversion with precision 0")
+   {
+      pbu::PresentAllocationInfo b(100);
+      b << b.setBase(16) << b.setPrecision(0) << 255.0;
+      REQUIRE(strcmp(b.get(), "FF.") == 0);
+   }
+
+   SECTION("Hexadecimal conversion with precision 3")
+   {
+      pbu::PresentAllocationInfo b(100);
+      b << b.setBase(16) << b.setPrecision(3) << 255.123;
+      REQUIRE(strcmp(b.get(), "FF.1F7") == 0);
+   }
+
+   SECTION("Binary conversion with precision 5")
+   {
+      pbu::PresentAllocationInfo b(100);
+      b << b.setIsTotalPrecision(true) << b.setBase(2) << b.setPrecision(5)
+        << 0.625;
+      REQUIRE(strcmp(b.get(), "0.10100") == 0);
+   }
+
+   SECTION("Octal conversion with precision 0")
+   {
+      pbu::PresentAllocationInfo b(100);
+      b << b.setBase(8) << b.setPrecision(0) << 255.0;
+      REQUIRE(strcmp(b.get(), "377.") == 0);
+   }
+
+   SECTION("Octal conversion with precision 3")
+   {
+      pbu::PresentAllocationInfo b(100);
+      b << b.setBase(8) << b.setPrecision(3) << 255.123;
+      REQUIRE(strcmp(b.get(), "377.076") == 0);
    }
 }
