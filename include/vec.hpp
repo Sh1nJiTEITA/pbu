@@ -18,7 +18,7 @@ class Vec
    T* __last = nullptr;
    T* __max  = nullptr;
 
-   pbu::Allocator<T> __allocator;
+   Allocator __allocator;
 
    void __ensure_capacity()
    {
