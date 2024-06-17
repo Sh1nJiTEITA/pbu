@@ -21,11 +21,50 @@ public:
        : v{PBU_MOV(_v)}, next{nullptr}
    {
    }
+};
 
-   FListNode& operator++() {
-      return next;
+template <typename T>
+class FListIterator
+{
+   FListNode<T>* __current;
+
+public:
+   FListIterator(const FListNode<T>& it)
+       : __current{&it}
+   {
    }
-   FListNode operator++(int) {}
+   FListIterator(const FListNode<T>* it)
+       : __current{it}
+   {
+   }
+   FListIterator(FListNode<T>* it)
+       : __current{it}
+   {
+   }
+
+   T& operator*() { return __current->v; }
+   FListIterator& operator++()
+   {
+      if (__current)
+      {
+         __current = __current->next;
+      }
+      return *this;
+   }
+   FListIterator operator++(int)
+   {
+      FListIterator temp = *this;
+      ++(*this);
+      return temp;
+   }
+   bool operator==(const FListIterator<T> o)
+   {
+      return __current == o.__current;
+   }
+   bool operator!=(const FListIterator<T> o)
+   {
+      return __current != o.__current;
+   }
 };
 
 template <typename T, typename Allocator = pbu::Allocator<T>>
@@ -50,34 +89,42 @@ public:
       while (current)
       {
          Node* next = current->next;
-         __allocator.destroy(next);
-         __allocator.deallocate(next, 1);
+         __allocator.destroy(current);
+         __allocator.deallocate(current, 1);
          current = next;
       }
       __head = __tail = nullptr;
    }
 
-   void add_back(const T& v)
+   void add(const T& v)
    {
       Node* n = __allocator.allocate(1);
       __allocator.construct(n, v);
-      if (__tail)
+      if (!__head)
       {
-         __tail->next = n;
+         __head = n;
+         __tail = n;
       }
       else
       {
-         __head = n;
+         __tail->next = n;
+         __tail       = n;
       }
-      __tail = n;
    }
-   void add_front(T&& v) {}
 
-   T* begin() noexcept { return &__head->v; }
+   void rem() { __allocator.destroy(__tail); }
 
-   T* end() noexcept { return &__tail->v; }
+   FListIterator<T> begin() noexcept { return FListIterator<T>(__head); }
+   FListIterator<T> end() noexcept { return FListIterator<T>(__tail); }
+   const FListIterator<T> begin() const noexcept
+   {
+      return FListIterator<T>(__head);
+   }
+   const FListIterator<T> end() const noexcept
+   {
+      return FListIterator<T>(__tail);
+   }
 };
-
 };  // namespace pbu
 
 #endif

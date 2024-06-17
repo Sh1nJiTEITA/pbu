@@ -6,7 +6,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(SOURCES src/pbu.cpp src/bar_string.cpp src/str.cpp src/vec.cpp)
 
 set(HEADERS include/pbu.h include/bar_string.h include/str.h include/vec.hpp
-            include/allocator.hpp include/list.hpp)
+            include/allocator.hpp include/flist.hpp)
 
 add_library(pbu SHARED ${SOURCES} ${HEADERS})
 
@@ -28,8 +28,7 @@ if(${BUILD_TESTS})
 
   set(TEST_SOURCES # test/test.cpp
       test/test_allocator.cpp test/test_vec.cpp
-      test/test_presentAllocationInfo.cpp
-      test/test_list.cpp)
+      test/test_presentAllocationInfo.cpp test/test_flist.cpp)
 
   add_executable(pbu_test ${TEST_SOURCES} ${SOURCES} ${HEADERS})
   target_include_directories(pbu_test PUBLIC include)
