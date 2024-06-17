@@ -20,12 +20,42 @@ class Vec
 
    pbu::Allocator<T> __allocator;
 
+   void __ensure_capacity()
+   {
+      if (!__data)
+      {
+         reserve(1);
+      }
+      else if (__last == __max)
+      {
+         reserve(capacity() * 2);
+      }
+   }
+
 public:
    Vec(size_t size, pbu::Allocator<T> a = pbu::Allocator<T>())
        : __allocator{a}
    {
       reserve(size);
    };
+
+   Vec(const Vec& v)
+   {
+      reserve(v.capacity());
+      for (size_t i = 0; i < v.size(); ++i)
+      {
+         __allocator.construct(__last++, *(v.__data + i));
+      }
+   }
+
+   Vec(Vec&& v)
+       : __data{v.__data}
+       , __last{v.__last}
+       , __max{v.__max}
+       , __allocator{v.__allocator}
+   {
+      v.__data = v.__last = v.__max = nullptr;
+   }
 
    ~Vec()
    {
@@ -41,8 +71,19 @@ public:
 
    size_t capacity() const noexcept { return (size_t)(__max - __data); }
    size_t size() const noexcept { return (size_t)(__last - __data); }
-   const Allocator& allocator() { return __allocator; }
 
+   const T* data() const noexcept { return __data; }
+
+   T* begin() noexcept { return __data; }
+   T* end() noexcept { return __last; }
+   T* rbegin() noexcept { return __last - 1; }
+   T* rend() noexcept { return __last - 1; }
+   const T* begin() const noexcept { return __data; }
+   const T* end() const noexcept { return __last; }
+   const T* rbegin() const noexcept { return __last - 1; }
+   const T* rend() const noexcept { return __last - 1; }
+
+   const Allocator& allocator() noexcept { return __allocator; }
    void reserve(size_t new_size)
    {
       size_t s = size();
@@ -59,31 +100,94 @@ public:
       __max  = __data + new_size;
    };
 
+   void clear()
+   {
+      while (__last != __data)
+      {
+         __allocator.destroy(--__last);
+      }
+   }
+
+   void shrink()
+   {
+      if (__last != __max)
+      {
+         reserve(size());
+      }
+   }
+
    void add(const T& v)
    {
-      __allocator.construct(__last, v);
-      __last++;
+      __ensure_capacity();
+      __allocator.construct(__last++, v);
    }
    void add(const T&& v)
    {
-      __allocator.construct(__last, PBU_MOV(v));
-      __last++;
+      __ensure_capacity();
+      __allocator.construct(__last++, PBU_MOV(v));
    }
    template <typename... Args>
    void emp(Args&&... args)
    {
-      __allocator.construct(__last, PBU_FWD(args)...);
-      __last++;
+      __ensure_capacity();
+      __allocator.construct(__last++, PBU_FWD(args)...);
    }
 
-   T& operator[](size_t i) { return __data[i]; }
+   T& operator[](size_t i) noexcept { return __data[i]; }
+   Vec& operator=(const Vec& v)
+   {
+      if (this != &v)
+      {
+         clear();
+         __allocator = v.__allocator;
+         reserve(v.capacity());
+         for (const T* it = v.begin(); it != v.end(); ++it)
+         {
+            __allocator.construct(__last++, *it);
+         }
+      }
+      return *this;
+   }
+   Vec& operator=(Vec&& v)
+   {
+      if (this != &v)
+      {
+         clear();
+         if (__data != nullptr)
+         {
+            __allocator.deallocate(__data, capacity());
+         }
+         __data = v.__data;
+         __last = v.__last;
+         __max = v.__max;
+         __allocator = v.__allocator;
+
+         v.__data = v.__last = v.__max = nullptr;
+      }
+      return *this;
+   }
 
 #ifdef PBU_VEC_DEBUG
-   size_t allocationCount() { return __allocator.allocationCount(); }
-   size_t reallocationCount() { return __allocator.reallocationCount(); }
-   size_t deallocationCount() { return __allocator.deallocationCount(); }
-   size_t constructionCount() { return __allocator.constructionCount(); }
-   size_t destructionCount() { return __allocator.destructionCount(); }
+   size_t allocationCount() const noexcept
+   {
+      return __allocator.allocationCount();
+   }
+   size_t reallocationCount() const noexcept
+   {
+      return __allocator.reallocationCount();
+   }
+   size_t deallocationCount() const noexcept
+   {
+      return __allocator.deallocationCount();
+   }
+   size_t constructionCount() const noexcept
+   {
+      return __allocator.constructionCount();
+   }
+   size_t destructionCount() const noexcept
+   {
+      return __allocator.destructionCount();
+   }
    PresentAllocationInfo rprInfo()
    {
       PresentAllocationInfo msg(119 + 37 * capacity());
@@ -98,6 +202,19 @@ public:
           << "\n   deallocations:\t" << deallocationCount()
           << "\n   constructions:\t" << constructionCount()
           << "\n   destructions:\t" << destructionCount() << "\n):";
+
+      if (__data == nullptr)
+      {
+         msg << " no data";
+      }
+      else if (__max == nullptr)
+      {
+         msg << " no max ALLOCATION ERROR";
+      }
+      else if (__last == nullptr)
+      {
+         msg << " nothing allocated yet";
+      }
       for (T* it = __data; it != __max; ++it)
       {
          msg << "\n[" << static_cast<long long int>(it - __data) << "]\t";
@@ -116,6 +233,10 @@ public:
          else
          {
             msg << " " << *it;
+         }
+         if (it == __last)
+         {
+            msg << "\t<- last";
          }
       }
       return msg;

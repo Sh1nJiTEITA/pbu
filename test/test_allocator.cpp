@@ -76,7 +76,6 @@ TEST_CASE("ALLOCATOR")
    SECTION("ALLOCATOR USING IN STD::VECTOR<INT> NO RESERVE")
    {
       pbu::Allocator<int> a;
-      std::cout << ":::::::::::::::::::::" << std::endl;
       {
          // std::cout << "Creating allocator...\n";
          std::vector<int, pbu::Allocator<int>> vec({});
@@ -92,7 +91,6 @@ TEST_CASE("ALLOCATOR")
 
          a = vec.get_allocator();
       }
-      std::cout << ":::::::::::::::::::::" << std::endl;
       REQUIRE(a.allocationCount() == 3);
       REQUIRE(a.constructionCount() == 6);
       REQUIRE(a.deallocationCount() == 2);

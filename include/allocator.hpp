@@ -1,9 +1,9 @@
 #ifndef PBUALLOCATOR_H
 #define PBUALLOCATOR_H
 
-#include <iomanip>
-#include <iostream>
-#include <limits>
+#include <cstddef>
+#include <new>
+#include <type_traits>
 
 // #define PBU_ALLOCATOR_INFO_ENABLE
 #define PBU_COLOR_OUTPUT
@@ -19,6 +19,7 @@
 #define PBU_CLOG_WHITE "\033[37m"        /* White */
 #define PBU_CLOG_ORANGE "\033[38;5;214m" /* orange */
 #else
+#include <iostream>
 #define PBU_CLOG_RESET ""
 #define PBU_CLOG_RED ""     /* Red */
 #define PBU_CLOG_GREEN ""   /* Green */
@@ -33,6 +34,8 @@
 /* SHORT IMPLEMENTATION OF std::move */
 #define PBU_MOV(...) \
    static_cast<std::remove_reference_t<decltype(__VA_ARGS__)>&&>(__VA_ARGS__)
+// static_cast<decltype(__VA_ARGS__)&&>(__VA_ARGS__)
+
 /* SHORT IMPLEMENTATION OF std::forward */
 #define PBU_FWD(...) static_cast<decltype(__VA_ARGS__)&&>(__VA_ARGS__)
 
@@ -50,19 +53,47 @@ public:
    using size_type       = std::size_t;
    using difference_type = std::ptrdiff_t;
 
-   // Allocator() noexcept {}
-   // Allocator(const Allocator&) noexcept {}
    Allocator() = default;
-   template <class U>
-   constexpr Allocator(const Allocator<U>&) noexcept
-   {
-   }
-
+   // Allocator() {}
+   // template <class U>
+   // Allocator(Allocator<U>&& o) noexcept
+   // {
+   //    __construction_count = o.__construction_count;
+   //    __destruction_count  = o.__destruction_count;
+   //    __allocation_count   = o.__allocation_count;
+   //    __reallocation_count = o.__reallocation_count;
+   //    __deallocation_count = o.__deallocation_count;
+   // }
+   //
+   // Allocator(Allocator&& o) noexcept
+   //     : __allocation_count{o.__allocation_count}
+   //     , __reallocation_count{o.__reallocation_count}
+   //     , __deallocation_count{o.__deallocation_count}
+   //     , __construction_count{o.__construction_count}
+   //     , __destruction_count{o.__destruction_count}
+   // {
+   //    o.__allocation_count   = 0;
+   //    o.__reallocation_count = 0;
+   //    o.__deallocation_count = 0;
+   //    o.__construction_count = 0;
+   //    o.__destruction_count  = 0;
+   // }
+   //
+   // template <class U>
+   // constexpr Allocator(const Allocator<U>& o) noexcept
+   //     : __allocation_count{o.__allocation_count}
+   //     , __reallocation_count{o.__reallocation_count}
+   //     , __deallocation_count{o.__deallocation_count}
+   //     , __construction_count{o.__construction_count}
+   //     , __destruction_count{o.__destruction_count}
+   // {
+   // }
+   //
    ~Allocator() {}
 
    size_type max_size() const noexcept
    {
-      return std::numeric_limits<size_type>::max() / sizeof(T);
+      return static_cast<size_t>(-1) / sizeof(T);
    }
 
    [[nodiscard]] pointer allocate(size_type n, const void* = 0)
@@ -78,7 +109,6 @@ public:
       pointer ptr = static_cast<pointer>(::operator new(n * sizeof(T)));
 
 #ifdef PBU_ALLOCATOR_INFO_ENABLE
-
       std::clog << PBU_CLOG_GREEN << "[A] Allocating pointer:\t\t|"
                 << static_cast<void*>(ptr) << "|\t"
                 << "bytes: " << sizeof(T) * n << "\t|" << PBU_CLOG_RESET
@@ -379,7 +409,7 @@ public:
       __last++;
       return *this;
    }
-
+#ifdef PBU_ALLOCATOR_INFO_ENABLE
    friend std::ostream& operator<<(std::ostream& os,
                                    const PresentAllocationInfo& message)
    {
@@ -390,6 +420,7 @@ public:
       // os << message.__data;
       return os;
    }
+#endif
 };
 
 }  // namespace pbu
