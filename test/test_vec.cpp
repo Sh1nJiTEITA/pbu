@@ -92,6 +92,67 @@ TEST_CASE("VEC TEST")
          REQUIRE(v2[0] == 3);
          REQUIRE(v2[1] == 6);
       }
+      SECTION("Iterator constructor")
+      {
+         {
+            pbu::Vec<int> a;
+            a.add(1);
+            a.add(2);
+            a.add(3);
+            a.add(4);
+            pbu::Vec<int> b(a.begin(), a.end());
+            for (int i = 0; i < a.size(); ++i)
+            {
+               REQUIRE(a[i] == b[i]);
+            }
+         }
+         SECTION("ELEMENT CHANGE")
+         {
+            pbu::Vec<int> a;
+            a.add(9);
+            a.add(10);
+            a.add(11);
+            pbu::Vec<int> b(a.begin(), a.end());
+            for (int i = 0; i < a.size(); ++i)
+            {
+               REQUIRE(a[i] == b[i]);
+            }
+            a[1] = 20;
+            REQUIRE(a[1] != b[1]);
+            REQUIRE(b[1] == 10);
+         }
+         SECTION("SIZE CHECK")
+         {
+            pbu::Vec<int> a;
+            a.add(12);
+            a.add(13);
+            a.add(14);
+            a.add(15);
+            pbu::Vec<int> b(a.begin(), a.end());
+            REQUIRE(a.size() == 4);
+            REQUIRE(b.size() == 4);
+            for (int i = 0; i < a.size(); ++i)
+            {
+               REQUIRE(a[i] == b[i]);
+            }
+         }
+         // SECTION("REMOVE ELEMENT")
+         // {
+         //    pbu::Vec<int> a;
+         //    a.add(16);
+         //    a.add(17);
+         //    a.add(18);
+         //    a.add(19);
+         //    a.;  // Удаляем элемент с индексом 1
+         //    pbu::Vec<int> b(a.begin(), a.end());
+         //    REQUIRE(a.size() == 3);
+         //    REQUIRE(b.size() == 3);
+         //    for (int i = 0; i < a.size(); ++i)
+         //    {
+         //       REQUIRE(a[i] == b[i]);
+         //    }
+         // }
+      }
       //
       SECTION("Assignment operator")
       {
