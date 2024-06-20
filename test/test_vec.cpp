@@ -2,6 +2,8 @@
 #include <catch2/catch_test_macros.hpp>
 
 // #include "allocator.hpp"
+#include <iostream>
+
 #include "vec.hpp"
 
 TEST_CASE("VEC TEST")
@@ -136,22 +138,57 @@ TEST_CASE("VEC TEST")
                REQUIRE(a[i] == b[i]);
             }
          }
-         // SECTION("REMOVE ELEMENT")
-         // {
-         //    pbu::Vec<int> a;
-         //    a.add(16);
-         //    a.add(17);
-         //    a.add(18);
-         //    a.add(19);
-         //    a.;  // Удаляем элемент с индексом 1
-         //    pbu::Vec<int> b(a.begin(), a.end());
-         //    REQUIRE(a.size() == 3);
-         //    REQUIRE(b.size() == 3);
-         //    for (int i = 0; i < a.size(); ++i)
-         //    {
-         //       REQUIRE(a[i] == b[i]);
-         //    }
-         // }
+         SECTION("REMOVE ELEMENT")
+         {
+            pbu::Vec<int> a;
+            a.add(16);
+            a.add(17);
+            a.add(18);
+            a.add(19);
+            a.rem(1);
+            // std::cout << a.rprInfo().get();
+            pbu::Vec<int> b(a.begin(), a.end());
+            REQUIRE(a.size() == 3);
+            REQUIRE(b.size() == 3);
+            for (int i = 0; i < a.size(); ++i)
+            {
+               REQUIRE(a[i] == b[i]);
+            }
+         }
+         SECTION("REMOVE_ELEMENT 2")
+         {
+            pbu::Vec<int> a(10);
+            a.add(16);
+            a.add(17);
+            a.add(18);
+            a.add(19);
+            a.rem(10);
+            pbu::Vec<int> b(a.begin(), a.end());
+            REQUIRE(a.size() == 0);
+            REQUIRE(b.size() == 0);
+            for (int i = 0; i < a.size(); ++i)
+            {
+               REQUIRE(a[i] == b[i]);
+            }
+         }
+         SECTION("REMOVE_ELEMENT 3")
+         {
+            pbu::Vec<int> a(10);
+            a.add(16);
+            a.add(17);
+            a.add(18);
+            a.add(19);
+            a.rem(3);
+            pbu::Vec<int> b(a.begin(), a.end());
+            REQUIRE(a.size() == 1);
+            REQUIRE(b.size() == 1);
+            REQUIRE(a[0] == 16);
+            REQUIRE(b[0] == 16);
+            for (int i = 0; i < a.size(); ++i)
+            {
+               REQUIRE(a[i] == b[i]);
+            }
+         }
       }
       //
       SECTION("Assignment operator")

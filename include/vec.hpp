@@ -13,6 +13,7 @@
 // #include <concurrencysal.h>
 
 #include <allocator.hpp>
+// #include <cstdint>
 #include <iostream>
 
 // #define PBU_ALLOCATOR_INFO_ENABLE
@@ -63,7 +64,15 @@ public:
       {
          abort();
       }
-      reserve(e - b);
+      if (b == e)
+      {
+         reserve(1);
+         return;
+      }
+      else
+      {
+         reserve((e - b) * 2);
+      }
       for (const T* it = b; it != e; ++it)
       {
          __allocator.construct(__last++, *it);
@@ -72,7 +81,6 @@ public:
 
    Vec(const Vec& v)
    {
-      // std::cout << "Copy!\n";
       reserve(v.capacity());
       for (size_t i = 0; i < v.size(); ++i)
       {
@@ -81,12 +89,10 @@ public:
    }
 
    Vec(Vec&& v)
-       // : __data{PBU_MOV(v.__data)}
-       // , __last{PBU_MOV(v.__last)}
-       // , __max{PBU_MOV(v.__max)}
-       // , __allocator{v.__allocator}
-       : __data{v.__data}, __last{v.__last}, __max{v.__max}
-   // , __allocator{v.__allocator}
+       : __data{v.__data}
+       , __last{v.__last}
+       , __max{v.__max}
+       , __allocator{v.__allocator}
    {
       v.__data = v.__last = v.__max = nullptr;
    }
@@ -166,7 +172,40 @@ public:
       __ensure_capacity();
       __allocator.construct(__last++, PBU_FWD(args)...);
    }
-
+   void rem(size_t n = 1)
+   {
+      int64_t s  = size();
+      int64_t n_ = n;
+      if (s - (int64_t)n <= 0)
+      {
+         clear();
+         return;
+      }
+      for (size_t i = 0; i < n; ++i)
+      {
+         __allocator.destroy(--__last);
+      }
+   }
+   void rem(const T* b, const T* e)
+   {
+      // if (e - b <= 0 || b < __data || e > __last - 1)
+      // {
+      //    return;
+      // }
+      // for (const T* b_ = b; b_ < e; ++b_)
+      // {
+      //    __allocator.destroy(b_);
+      // }
+      // if (e != __last - 1)
+      // {
+      //    const T* lb = b;
+      //    const T* rb = e;
+      //    while (<
+      //    for (const T* b_ = e + 1; b_ < __last; ++b_) { 
+      //       
+      //    }
+      // }
+   }
    T& operator[](size_t i) noexcept { return __data[i]; }
    Vec& operator=(const Vec& v)
    {
