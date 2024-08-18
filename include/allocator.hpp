@@ -34,7 +34,7 @@
 /* SHORT IMPLEMENTATION OF std::move */
 #define PBU_MOV(...) \
    static_cast<std::remove_reference_t<decltype(__VA_ARGS__)>&&>(__VA_ARGS__)
-// static_cast<decltype(__VA_ARGS__)&&>(__VA_ARGS__)
+// static_cast<decltype(_VA_ARGS__)&&>(__VA_ARGS__)
 
 /* SHORT IMPLEMENTATION OF std::forward */
 #define PBU_FWD(...) static_cast<decltype(__VA_ARGS__)&&>(__VA_ARGS__)
@@ -58,34 +58,34 @@ public:
    // template <class U>
    // Allocator(Allocator<U>&& o) noexcept
    // {
-   //    __construction_count = o.__construction_count;
-   //    __destruction_count  = o.__destruction_count;
-   //    __allocation_count   = o.__allocation_count;
-   //    __reallocation_count = o.__reallocation_count;
-   //    __deallocation_count = o.__deallocation_count;
+   //    _construction_count = o._construction_count;
+   //    _destruction_count  = o._destruction_count;
+   //    _allocation_count   = o._allocation_count;
+   //    _reallocation_count = o._reallocation_count;
+   //    _deallocation_count = o._deallocation_count;
    // }
    //
    // Allocator(Allocator&& o) noexcept
-   //     : __allocation_count{o.__allocation_count}
-   //     , __reallocation_count{o.__reallocation_count}
-   //     , __deallocation_count{o.__deallocation_count}
-   //     , __construction_count{o.__construction_count}
-   //     , __destruction_count{o.__destruction_count}
+   //     : _allocation_count{o._allocation_count}
+   //     , _reallocation_count{o._reallocation_count}
+   //     , _deallocation_count{o._deallocation_count}
+   //     , _construction_count{o._construction_count}
+   //     , _destruction_count{o._destruction_count}
    // {
-   //    o.__allocation_count   = 0;
-   //    o.__reallocation_count = 0;
-   //    o.__deallocation_count = 0;
-   //    o.__construction_count = 0;
-   //    o.__destruction_count  = 0;
+   //    o._allocation_count   = 0;
+   //    o._reallocation_count = 0;
+   //    o._deallocation_count = 0;
+   //    o._construction_count = 0;
+   //    o._destruction_count  = 0;
    // }
    //
    // template <class U>
    // constexpr Allocator(const Allocator<U>& o) noexcept
-   //     : __allocation_count{o.__allocation_count}
-   //     , __reallocation_count{o.__reallocation_count}
-   //     , __deallocation_count{o.__deallocation_count}
-   //     , __construction_count{o.__construction_count}
-   //     , __destruction_count{o.__destruction_count}
+   //     : _allocation_count{o._allocation_count}
+   //     , _reallocation_count{o._reallocation_count}
+   //     , _deallocation_count{o._deallocation_count}
+   //     , _construction_count{o._construction_count}
+   //     , _destruction_count{o._destruction_count}
    // {
    // }
    //
@@ -114,7 +114,7 @@ public:
                 << "bytes: " << sizeof(T) * n << "\t|" << PBU_CLOG_RESET
                 << "\n";
 #endif
-      __allocation_count++;
+      _allocation_count++;
       return ptr;
    }
 
@@ -128,7 +128,7 @@ public:
       if (p)
       {
          ::operator delete(p);
-         __deallocation_count++;
+         _deallocation_count++;
       }
    }
 
@@ -153,7 +153,7 @@ public:
          destroy(&p[i]);
       }
       deallocate(p, old_size);
-      __reallocation_count++;
+      _reallocation_count++;
       return new_ptr;
    }
 
@@ -166,12 +166,12 @@ public:
                 << "\t|" << PBU_CLOG_RESET << "\n";
 #endif
       new (static_cast<void*>(p)) T(PBU_FWD(args)...);
-      __construction_count++;
+      _construction_count++;
    }
 
    void destroy(pointer p)
    {
-      ++__destruction_count;
+      ++_destruction_count;
 #ifdef PBU_ALLOCATOR_INFO_ENABLE
       std::clog << PBU_CLOG_BLUE << "[D] Destroying pointer:\t\t|"
                 << static_cast<void*>(p) << "|\t" << "bytes: " << sizeof(T)
@@ -180,18 +180,18 @@ public:
       p->~T();
    }
 
-   size_type allocationCount() const noexcept { return __allocation_count; }
-   size_type reallocationCount() const noexcept { return __reallocation_count; }
-   size_type deallocationCount() const noexcept { return __deallocation_count; }
-   size_type constructionCount() const noexcept { return __construction_count; }
-   size_type destructionCount() const noexcept { return __destruction_count; }
+   size_type allocationCount() const noexcept { return _allocation_count; }
+   size_type reallocationCount() const noexcept { return _reallocation_count; }
+   size_type deallocationCount() const noexcept { return _deallocation_count; }
+   size_type constructionCount() const noexcept { return _construction_count; }
+   size_type destructionCount() const noexcept { return _destruction_count; }
 
 private:
-   size_type __allocation_count   = 0;
-   size_type __reallocation_count = 0;
-   size_type __deallocation_count = 0;
-   size_type __construction_count = 0;
-   size_type __destruction_count  = 0;
+   size_type _allocation_count   = 0;
+   size_type _reallocation_count = 0;
+   size_type _deallocation_count = 0;
+   size_type _construction_count = 0;
+   size_type _destruction_count  = 0;
 };
 template <class T, class U>
 bool operator==(const Allocator<T>&, const Allocator<U>&)
@@ -207,15 +207,15 @@ bool operator!=(const Allocator<T>&, const Allocator<U>&)
 
 class PresentAllocationInfo
 {
-   char* __data = nullptr;
-   char* __max  = nullptr;
-   char* __last = nullptr;
+   char* _data = nullptr;
+   char* _max  = nullptr;
+   char* _last = nullptr;
 
-   int __num_base    = 10;
-   int __decimal_acc = 7;
+   int _num_base    = 10;
+   int _decimal_acc = 7;
 
-   bool __is_total_precision = false;
-   pbu::Allocator<char> __allocator;
+   bool _is_total_precision = false;
+   pbu::Allocator<char> _allocator;
 
 public:
    // UTILS -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
@@ -231,16 +231,16 @@ public:
       return chars;
    }
 
-   const char* get() { return __data; }
+   const char* get() { return _data; }
 
    // CONSTRUCTION -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
    PresentAllocationInfo(size_t chars_count)
    {
       if (chars_count != 0)
       {
-         __data = __allocator.allocate(chars_count);
-         __max  = __data + chars_count;
-         __last = __data;
+         _data = _allocator.allocate(chars_count);
+         _max  = _data + chars_count;
+         _last = _data;
       }
    }
 
@@ -253,32 +253,33 @@ public:
 
    ~PresentAllocationInfo()
    {
-      char* ch = __data;
-      __allocator.deallocate(__data, __max - __data);
+      char* ch = _data;
+      _allocator.deallocate(_data, _max - _data);
    }
 
-   char& operator[](size_t i) { return __data[i]; }
+   char& operator[](size_t i) { return _data[i]; }
 
    // SETTERS -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
    PresentAllocationInfo& setIsTotalPrecision(bool i)
    {
-      __is_total_precision = i;
+      _is_total_precision = i;
       return *this;
    }
 
    PresentAllocationInfo& setBase(int b)
    {
-      __num_base = b;
+      _num_base = b;
       return *this;
    }
 
    PresentAllocationInfo& setPrecision(int p)
    {
-      __decimal_acc = p;
+      _decimal_acc = p;
       return *this;
    }
 
    // ADDING -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+   // TODO: NOT INPLEMENTED
    PresentAllocationInfo& operator<<(const PresentAllocationInfo&)
    {
       return *this;
@@ -286,8 +287,8 @@ public:
 
    PresentAllocationInfo& operator<<(long long int v)
    {
-      char* result = __allocator.allocate(50);
-      if (__num_base < 2 || __num_base > 36)
+      char* result = _allocator.allocate(50);
+      if (_num_base < 2 || _num_base > 36)
       {
          *this << "INVALID_INT";
          return *this;
@@ -297,13 +298,13 @@ public:
       do
       {
          tmp_v = v;
-         v /= __num_base;
+         v /= _num_base;
          *ptr++ =
              /*
              "zyxwvutsrqponmlkjihgfedcba9876543210123456789abcdefghijklmnopqrstuvwxyz"
                          */
              "ZYXWVUTSRQPONMLKJIHGFEDCBA9876543210123456789ABCDEFGHIJKLMNOPQRST"
-             "UVWXYZ"[35 + (tmp_v - v * __num_base)];
+             "UVWXYZ"[35 + (tmp_v - v * _num_base)];
 
       } while (v);
       if (tmp_v < 0)
@@ -318,18 +319,18 @@ public:
          *ptr1++  = tmp_char;
       }
       *this << result;
-      __allocator.deallocate(result, 50);
+      _allocator.deallocate(result, 50);
       return *this;
    }
 
    PresentAllocationInfo& operator<<(double v)
    {
-      if (__num_base < 2 || __num_base > 36)
+      if (_num_base < 2 || _num_base > 36)
       {
          *this << "INVALID_DOUBLE";
          return *this;
       }
-      char* decimal_string       = __allocator.allocate(__decimal_acc + 1);
+      char* decimal_string       = _allocator.allocate(_decimal_acc + 1);
       long long int integer_part = static_cast<long long int>(v);
       double decimal_part;
       if (integer_part < 0)
@@ -341,20 +342,20 @@ public:
          decimal_part = v - integer_part;
       }
 
-      size_t precision = __decimal_acc;
+      size_t precision = _decimal_acc;
 
-      while (precision > 0 && ((decimal_part != 0.0f) || __is_total_precision))
+      while (precision > 0 && ((decimal_part != 0.0f) || _is_total_precision))
       {
-         decimal_part *= __num_base;
+         decimal_part *= _num_base;
          size_t intPart = static_cast<size_t>(decimal_part);
-         __allocator.construct(decimal_string + __decimal_acc - precision,
+         _allocator.construct(decimal_string + _decimal_acc - precision,
                                "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"[intPart]);
          decimal_part -= intPart;
          --precision;
       }
-      __allocator.construct(decimal_string + __decimal_acc - precision, '\0');
+      _allocator.construct(decimal_string + _decimal_acc - precision, '\0');
       *this << integer_part << "." << decimal_string;
-      __allocator.deallocate(decimal_string, __decimal_acc + 1);
+      _allocator.deallocate(decimal_string, _decimal_acc + 1);
       return *this;
    }
 
@@ -376,10 +377,10 @@ public:
    }
    PresentAllocationInfo& operator<<(const char* message)
    {
-      if (__last != __data)
+      if (_last != _data)
       {
-         __allocator.destroy(__last);
-         __last--;
+         _allocator.destroy(_last);
+         _last--;
       }
       const char* ptr = message;
       size_t chars    = 0;
@@ -389,35 +390,35 @@ public:
          ptr++;
       }
 
-      size_t old_size       = __max - __data;
-      size_t old_ready_size = __last - __data;
+      size_t old_size       = _max - _data;
+      size_t old_ready_size = _last - _data;
       if (old_size - old_ready_size < chars)
       {
          size_t new_size = old_size * 2;
-         __data          = __allocator.reallocate(__data, old_size, new_size);
-         __last          = __data + old_ready_size;
-         __max           = __data + new_size;
+         _data          = _allocator.reallocate(_data, old_size, new_size);
+         _last          = _data + old_ready_size;
+         _max           = _data + new_size;
       }
       ptr = message;
       while (*ptr != '\0')
       {
-         __allocator.construct(__last, *ptr);
-         __last++;
+         _allocator.construct(_last, *ptr);
+         _last++;
          ptr++;
       }
-      __allocator.construct(__last, '\0');
-      __last++;
+      _allocator.construct(_last, '\0');
+      _last++;
       return *this;
    }
 #ifdef PBU_ALLOCATOR_INFO_ENABLE
    friend std::ostream& operator<<(std::ostream& os,
                                    const PresentAllocationInfo& message)
    {
-      for (char* ch = message.__data; ch != message.__last; ++ch)
+      for (char* ch = message._data; ch != message._last; ++ch)
       {
          os << *ch;
       }
-      // os << message.__data;
+      // os << message._data;
       return os;
    }
 #endif

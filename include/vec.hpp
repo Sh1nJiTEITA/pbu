@@ -28,19 +28,19 @@ template <class T, class Allocator = pbu::Allocator<T>>
 class Vec
 {
 protected:
-   T* __data = nullptr;
-   T* __last = nullptr;
-   T* __max  = nullptr;
+   T* _data = nullptr;
+   T* _last = nullptr;
+   T* _max  = nullptr;
 
-   Allocator __allocator;
+   Allocator _allocator;
 
-   void __ensure_capacity()
+   void _ensure_capacity()
    {
-      if (!__data)
+      if (!_data)
       {
          reserve(1);
       }
-      else if (__last == __max)
+      else if (_last == _max)
       {
          reserve(capacity() * 2);
       }
@@ -48,12 +48,12 @@ protected:
 
 public:
    Vec()
-       : __allocator(pbu::Allocator<T>())
+       : _allocator(pbu::Allocator<T>())
    {
       reserve(1);
    }
    Vec(size_t size, pbu::Allocator<T> a = pbu::Allocator<T>())
-       : __allocator{a}
+       : _allocator{a}
    {
       reserve(size);
    };
@@ -75,7 +75,7 @@ public:
       }
       for (const T* it = b; it != e; ++it)
       {
-         __allocator.construct(__last++, *it);
+         _allocator.construct(_last++, *it);
       }
    }
 
@@ -84,73 +84,71 @@ public:
       reserve(v.capacity());
       for (size_t i = 0; i < v.size(); ++i)
       {
-         __allocator.construct(__last++, *(v.__data + i));
+         _allocator.construct(_last++, *(v._data + i));
       }
    }
 
    Vec(Vec&& v)
-       : __data{v.__data}
-       , __last{v.__last}
-       , __max{v.__max}
-       , __allocator{v.__allocator}
+       : _data{v._data}, _last{v._last}, _max{v._max}, _allocator{v._allocator}
    {
-      v.__data = v.__last = v.__max = nullptr;
+      v._data = v._last = v._max = nullptr;
    }
 
    ~Vec()
    {
-      if (__data != nullptr)
+      if (_data != nullptr)
       {
-         for (T* b = __data; b != __max; ++b)
+         for (T* b = _data; b != _max; ++b)
          {
-            __allocator.destroy(b);
+            _allocator.destroy(b);
          }
-         __allocator.deallocate(__data, capacity());
+         _allocator.deallocate(_data, capacity());
       }
    }
 
-   size_t capacity() const noexcept { return (size_t)(__max - __data); }
-   size_t size() const noexcept { return (size_t)(__last - __data); }
+   size_t capacity() const noexcept { return (size_t)(_max - _data); }
+   size_t size() const noexcept { return (size_t)(_last - _data); }
 
-   const T* data() const noexcept { return __data; }
+   const T* data() const noexcept { return _data; }
 
-   T* begin() noexcept { return __data; }
-   T* end() noexcept { return __last; }
-   T* rbegin() noexcept { return __last - 1; }
-   T* rend() noexcept { return __last - 1; }
-   const T* begin() const noexcept { return __data; }
-   const T* end() const noexcept { return __last; }
-   const T* rbegin() const noexcept { return __last - 1; }
-   const T* rend() const noexcept { return __last - 1; }
+   T* begin() noexcept { return _data; }
+   T* end() noexcept { return _last; }
+   T* rbegin() noexcept { return _last - 1; }
+   T* rend() noexcept { return _data - 1; }
+   const T* begin() const noexcept { return _data; }
+   const T* end() const noexcept { return _last; }
+   const T* rbegin() const noexcept { return _last - 1; }
+   const T* rend() const noexcept { return _data - 1; }
 
-   const Allocator& allocator() noexcept { return __allocator; }
+   const Allocator& allocator() noexcept { return _allocator; }
+
    void reserve(size_t new_size)
    {
       size_t s = size();
-      if (__data == nullptr)
+      if (_data == nullptr)
       {
-         __data = __allocator.allocate(new_size);
+         _data = _allocator.allocate(new_size);
       }
       else
       {
-         __data = __allocator.reallocate(__data, s, new_size);
-         __last = __data;
+         _data = _allocator.reallocate(_data, s, new_size);
+         _last = _data;
       }
-      __last = __data + s;
-      __max  = __data + new_size;
+      _last = _data + s;
+      _max  = _data + new_size;
    };
 
    void clear()
    {
-      while (__last != __data)
+      while (_last != _data)
       {
-         __allocator.destroy(--__last);
+         _allocator.destroy(--_last);
       }
    }
 
    void shrink()
    {
-      if (__last != __max)
+      if (_last != _max)
       {
          reserve(size());
       }
@@ -158,19 +156,19 @@ public:
 
    virtual void add(const T& v)
    {
-      __ensure_capacity();
-      __allocator.construct(__last++, v);
+      _ensure_capacity();
+      _allocator.construct(_last++, v);
    }
    virtual void add(const T&& v)
    {
-      __ensure_capacity();
-      __allocator.construct(__last++, PBU_MOV(v));
+      _ensure_capacity();
+      _allocator.construct(_last++, PBU_MOV(v));
    }
    template <typename... Args>
    void emp(Args&&... args)
    {
-      __ensure_capacity();
-      __allocator.construct(__last++, PBU_FWD(args)...);
+      _ensure_capacity();
+      _allocator.construct(_last++, PBU_FWD(args)...);
    }
    void rem(size_t n = 1)
    {
@@ -183,40 +181,40 @@ public:
       }
       for (size_t i = 0; i < n; ++i)
       {
-         __allocator.destroy(--__last);
+         _allocator.destroy(--_last);
       }
    }
    void rem(const T* b, const T* e)
    {
-      // if (e - b <= 0 || b < __data || e > __last - 1)
+      // if (e - b <= 0 || b < _data || e > _last - 1)
       // {
       //    return;
       // }
       // for (const T* b_ = b; b_ < e; ++b_)
       // {
-      //    __allocator.destroy(b_);
+      //    _allocator.destroy(b_);
       // }
-      // if (e != __last - 1)
+      // if (e != _last - 1)
       // {
       //    const T* lb = b;
       //    const T* rb = e;
       //    while (<
-      //    for (const T* b_ = e + 1; b_ < __last; ++b_) { 
-      //       
+      //    for (const T* b_ = e + 1; b_ < _last; ++b_) {
+      //
       //    }
       // }
    }
-   T& operator[](size_t i) noexcept { return __data[i]; }
+   T& operator[](size_t i) noexcept { return _data[i]; }
    Vec& operator=(const Vec& v)
    {
       if (this != &v)
       {
          clear();
-         __allocator = v.__allocator;
+         _allocator = v._allocator;
          reserve(v.capacity());
          for (const T* it = v.begin(); it != v.end(); ++it)
          {
-            __allocator.construct(__last++, *it);
+            _allocator.construct(_last++, *it);
          }
       }
       return *this;
@@ -226,16 +224,16 @@ public:
       if (this != &v)
       {
          clear();
-         if (__data != nullptr)
+         if (_data != nullptr)
          {
-            __allocator.deallocate(__data, capacity());
+            _allocator.deallocate(_data, capacity());
          }
-         __data      = v.__data;
-         __last      = v.__last;
-         __max       = v.__max;
-         __allocator = v.__allocator;
+         _data      = v._data;
+         _last      = v._last;
+         _max       = v._max;
+         _allocator = v._allocator;
 
-         v.__data = v.__last = v.__max = nullptr;
+         v._data = v._last = v._max = nullptr;
       }
       return *this;
    }
@@ -243,23 +241,23 @@ public:
 #ifdef PBU_VEC_DEBUG
    size_t allocationCount() const noexcept
    {
-      return __allocator.allocationCount();
+      return _allocator.allocationCount();
    }
    size_t reallocationCount() const noexcept
    {
-      return __allocator.reallocationCount();
+      return _allocator.reallocationCount();
    }
    size_t deallocationCount() const noexcept
    {
-      return __allocator.deallocationCount();
+      return _allocator.deallocationCount();
    }
    size_t constructionCount() const noexcept
    {
-      return __allocator.constructionCount();
+      return _allocator.constructionCount();
    }
    size_t destructionCount() const noexcept
    {
-      return __allocator.destructionCount();
+      return _allocator.destructionCount();
    }
    PresentAllocationInfo rprInfo() const
    {
@@ -267,7 +265,7 @@ public:
 
       msg << "pub::Vec("
              "\n   total_size:\t\t"
-          << static_cast<long long int>(sizeof(T) * (__max - __data))
+          << static_cast<long long int>(sizeof(T) * (_max - _data))
           << "\n   element_size:\t" << static_cast<long long int>(sizeof(T))
           << "\n   max_elements:\t" << capacity() << "\n   current_elements:\t"
           << size() << "\n   allocations:\t\t" << allocationCount()
@@ -276,22 +274,22 @@ public:
           << "\n   constructions:\t" << constructionCount()
           << "\n   destructions:\t" << destructionCount() << "\n):";
 
-      if (__data == nullptr)
+      if (_data == nullptr)
       {
          msg << " no data";
       }
-      else if (__max == nullptr)
+      else if (_max == nullptr)
       {
          msg << " no max ALLOCATION ERROR";
       }
-      else if (__last == nullptr)
+      else if (_last == nullptr)
       {
          msg << " nothing allocated yet";
       }
-      for (T* it = __data; it != __max; ++it)
+      for (T* it = _data; it != _max; ++it)
       {
-         msg << "\n[" << static_cast<long long int>(it - __data) << "]\t";
-         if (it < __last)
+         msg << "\n[" << static_cast<long long int>(it - _data) << "]\t";
+         if (it < _last)
          {
             msg << " -> " << PBU_CLOG_GREEN << "c " << PBU_CLOG_RESET << "= ";
          }
@@ -306,13 +304,13 @@ public:
          else
          {
             msg << " ";
-            // sizeof(T) == 1 && *it == '\0' && it == __last - 1 ? msg << "\\0"
+            // sizeof(T) == 1 && *it == '\0' && it == _last - 1 ? msg << "\\0"
             //                                                   : msg << *it;
             //
             // IF T == char
             if (sizeof(T) == 1)
             {
-               if (*it == '\0' && it == __last - 1)
+               if (*it == '\0' && it == _last - 1)
                {
                   msg << "\\0";
                }
@@ -329,7 +327,7 @@ public:
                msg << *it;
             }
          }
-         if (it == __last)
+         if (it == _last)
          {
             msg << "\t<- last";
          }

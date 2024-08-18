@@ -45,6 +45,7 @@ TEST_CASE("VEC TEST")
          REQUIRE(*it == i);
          i++;
       }
+      i--;
       for (int* it = vec.rbegin(); it != vec.rend(); --it)
       {
          REQUIRE(*it == i);
